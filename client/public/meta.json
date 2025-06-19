@@ -1,0 +1,19 @@
+{
+  "name": "StyleHive",
+  "version": "1.0.0",
+  "description": "AI-powered fashion discovery and social marketplace",
+  "author": "Adrian Ajayi",
+  "homepage": "https://style-hive-2-ebcrj57q1-adrians-projects-304d7952.vercel.app/",
+  "features": [
+    "Real-time AI fashion chat",
+    "Style recommendations from uploaded images",
+    "Interactive product previews",
+    "Save favorite styles and looks",
+    "Dynamic pricing & social engagement"
+  ],
+  "theme": {
+    "primaryColor": "#FFD700",
+    "backgroundColor": "#000000",
+    "font": "Outfit"
+  }
+}

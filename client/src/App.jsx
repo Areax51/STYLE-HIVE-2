@@ -8,7 +8,9 @@ import Saved from "./pages/Savedd";
 import Recommend from "./pages/Recommend";
 import Chat from "./pages/Chat";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Favorites from "./pages/Favorites"; // adjust path if different
+import Favorites from "./pages/Favorites";
+import ImageStylist from "./components/ImageStylist";
+import ChatBoxRealtime from "./components/ChatBoxRealtime";
 
 function App() {
   return (
@@ -18,10 +20,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/chat" element={<ChatBox />} />
-        <Route path="/favorites" element={<Favorites />} /> {/* 👈 NEW */}
+        <Route path="/favorites" element={<Favorites />} />
         <Route path="/stylist" element={<ImageStylist />} />
         <Route path="/chat-live" element={<ChatBoxRealtime />} />
+
         {/* Protected Routes */}
         <Route
           path="/products"

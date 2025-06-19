@@ -24,7 +24,6 @@ function App() {
         <Route path="/stylist" element={<ImageStylist />} />
         <Route path="/chat-live" element={<ChatBoxRealtime />} />
 
-        {/* Protected Routes */}
         <Route
           path="/products"
           element={

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -14,7 +14,7 @@ import ChatBoxRealtime from "./components/ChatBoxRealtime";
 
 function App() {
   return (
-    <Router>
+    <>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -58,7 +58,7 @@ function App() {
           }
         />
       </Routes>
-    </Router>
+    </>
   );
 }
 

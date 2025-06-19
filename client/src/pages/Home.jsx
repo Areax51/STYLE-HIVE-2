@@ -1,16 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Products from "./pages/Products";
-import Saved from "./pages/Savedd";
-import Recommend from "./pages/Recommend";
-import Chat from "./pages/Chat";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Favorites from "./pages/Favorites";
-import ImageStylist from "./pages/ImageStylist";
-import ChatBoxRealtime from "./components/ChatBoxRealtime";
+import Navbar from "../components/Navbar";
+import Home from "./Home"; // ✅ FIXED: Correct relative path
+import Login from "./Login";
+import Register from "./Register";
+import Products from "./Products";
+import Saved from "./Savedd";
+import Recommend from "./Recommend";
+import Chat from "./Chat";
+import ProtectedRoute from "../components/ProtectedRoute"; // ✅ Also fix this
+import Favorites from "./Favorites";
+import ImageStylist from "../components/ImageStylist";
+
+import ChatBoxRealtime from "../components/ChatBoxRealtime";
+
 // ❗ Remove or import ChatBox if needed
 // import ChatBox from "./components/ChatBox"; // Uncomment if you still need it
 

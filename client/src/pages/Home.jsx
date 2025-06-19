@@ -1,35 +1,71 @@
-import { Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Products from "./pages/Products";
+import Saved from "./pages/Savedd";
+import Recommend from "./pages/Recommend";
+import Chat from "./pages/Chat";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Favorites from "./pages/Favorites";
+import ImageStylist from "./pages/ImageStylist";
+import ChatBoxRealtime from "./components/ChatBoxRealtime";
+// ❗ Remove or import ChatBox if needed
+// import ChatBox from "./components/ChatBox"; // Uncomment if you still need it
 
-const Home = () => {
+function App() {
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6 py-12 text-center">
-      <h1 className="text-4xl md:text-6xl font-bold text-gold mb-4">
-        Welcome to StyleHive
-      </h1>
-      <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-8">
-        Your AI-powered fashion assistant. Get outfit ideas, discover trending
-        styles, and shop smarter — all in one stylish hive.
-      </p>
-      <div className="flex gap-4 flex-wrap justify-center">
-        <Link
-          to="/chat"
-          className="px-6 py-3 bg-gold text-black font-semibold rounded-xl hover:bg-yellow-400 transition"
-        >
-          Start Styling
-        </Link>
-        <Link
-          to="/favorites"
-          className="px-6 py-3 border border-gold text-gold font-semibold rounded-xl hover:bg-white hover:text-black transition"
-        >
-          View Favorites
-        </Link>
-      </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      <div className="mt-16 text-gray-500 text-sm">
-        Powered by AI • Styled by You • Made for the Hive
-      </div>
-    </div>
+        {/* ❌ This route is conflicting or unnecessary — remove if not used */}
+        {/* <Route path="/chat" element={<ChatBox />} /> */}
+
+        <Route path="/favorites" element={<Favorites />} />
+        <Route path="/stylist" element={<ImageStylist />} />
+        <Route path="/chat-live" element={<ChatBoxRealtime />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <Saved />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recommend"
+          element={
+            <ProtectedRoute>
+              <Recommend />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
-};
+}
 
-export default Home;
+export default App;

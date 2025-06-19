@@ -6,6 +6,10 @@ import Register from "./pages/Register";
 import Products from "./pages/Products";
 import Saved from "./pages/Savedd";
 import Recommend from "./pages/Recommend";
+import Chat from "./pages/Chat";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Favorites from "./pages/Favorites"; // adjust path if different
+
 function App() {
   return (
     <Router>
@@ -14,8 +18,43 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/saved" element={<Saved />} />
-        <Route path="/recommend" element={<Recommend />} />
+        <Route path="/chat" element={<ChatBox />} />
+        <Route path="/favorites" element={<Favorites />} /> {/* 👈 NEW */}
+        <Route path="/stylist" element={<ImageStylist />} />
+        <Route path="/chat-live" element={<ChatBoxRealtime />} />
+        {/* Protected Routes */}
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <Saved />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recommend"
+          element={
+            <ProtectedRoute>
+              <Recommend />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );

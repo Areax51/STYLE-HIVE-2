@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { loginUser } from "../api";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -12,39 +12,49 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await loginUser(form);
-      console.log(res.data);
-      alert("Logged in!");
-      navigate("/");
+      const res = await axios.post("/api/auth/login", form);
+      localStorage.setItem("token", res.data.token);
+      navigate("/chat");
     } catch (err) {
-      alert(err.response.data.message);
+      alert("Login failed.");
     }
   };
 
   return (
-    <div className="bg-black text-gold min-h-screen flex flex-col items-center justify-center">
-      <h2 className="text-3xl font-bold mb-6">Login</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white/10 backdrop-blur-md border border-gold rounded-xl p-8 shadow-gold w-full max-w-md"
+      >
+        <h2 className="text-3xl font-bold text-gold mb-6 text-center">Login</h2>
         <input
-          type="email"
           name="email"
+          type="email"
           placeholder="Email"
-          className="p-2 bg-futuristic-gray rounded"
+          value={form.email}
           onChange={handleChange}
+          className="w-full p-3 mb-4 rounded bg-gray-800 text-white border border-gold focus:outline-none"
         />
         <input
-          type="password"
           name="password"
+          type="password"
           placeholder="Password"
-          className="p-2 bg-futuristic-gray rounded"
+          value={form.password}
           onChange={handleChange}
+          className="w-full p-3 mb-6 rounded bg-gray-800 text-white border border-gold focus:outline-none"
         />
         <button
           type="submit"
-          className="bg-gold text-black font-bold py-2 rounded"
+          className="w-full bg-gold text-black font-bold py-3 rounded hover:bg-yellow-400 transition"
         >
           Login
         </button>
+        <p className="mt-4 text-center text-sm">
+          Don’t have an account?{" "}
+          <Link to="/register" className="text-gold hover:underline">
+            Register
+          </Link>
+        </p>
       </form>
     </div>
   );

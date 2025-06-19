@@ -5,9 +5,23 @@ export default {
     extend: {
       colors: {
         gold: "#FFD700",
-        "futuristic-gray": "#1A1A1A",
+        dark: "#0a0a0a",
+      },
+      boxShadow: {
+        gold: "0 0 15px rgba(255, 215, 0, 0.5)",
+      },
+      height: {
+        "screen-80": "80vh",
+        "screen-90": "90vh",
+      },
+      fontFamily: {
+        sans: ["Outfit", "ui-sans-serif", "system-ui"],
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("tailwind-scrollbar"),
+  ],
+  darkMode: "class",
 };

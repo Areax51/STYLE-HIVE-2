@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import ProductCard from "../components/ProductCard";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import ProductCard from "../components/ProductCard";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -9,62 +9,56 @@ const Products = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const res = await axios.get("http://localhost:5000/api/products");
-      setProducts(res.data);
+      try {
+        const res = await axios.get("http://localhost:5000/api/products"); // Replace with your backend URL
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      }
     };
-
     fetchProducts();
   }, []);
 
+  // Apply search + filter
   const filteredProducts = products.filter((product) => {
     const matchesQuery = product.name
       .toLowerCase()
       .includes(query.toLowerCase());
-    const matchesFilter = filter === "All" || product.category === filter;
-    return matchesQuery && matchesFilter;
+    const matchesCategory = filter === "All" || product.category === filter;
+    return matchesQuery && matchesCategory;
   });
 
   return (
-    <div className="bg-black text-white min-h-screen px-6 py-8">
-      <h1 className="text-3xl font-bold text-gold mb-6 text-center">
-        Discover Styles
-      </h1>
-
-      {/* Search & Filter */}
-      <div className="flex justify-center mb-4">
+    <div className="px-4 py-6">
+      {/* Search & Filter Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
         <input
           type="text"
           placeholder="Search products..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="p-2 rounded bg-futuristic-gray border border-gold text-white w-full max-w-md"
+          className="p-2 w-full sm:w-1/2 rounded border border-gold bg-black text-white"
         />
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="p-2 rounded border border-gold bg-black text-white"
+        >
+          <option value="All">All Categories</option>
+          <option value="Footwear">Footwear</option>
+          <option value="Jackets">Jackets</option>
+          <option value="Accessories">Accessories</option>
+        </select>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4 mb-8">
-        {["All", "Menswear", "Womenswear", "Accessories"].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-4 py-2 rounded text-sm ${
-              filter === cat
-                ? "bg-gold text-black"
-                : "bg-futuristic-gray hover:bg-gold hover:text-black"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Grid */}
+      {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredProducts.length > 0 ? (
-          filteredProducts.map((product, i) => (
-            <ProductCard product={product} key={i} />
+          filteredProducts.map((product) => (
+            <ProductCard key={product._id} product={product} />
           ))
         ) : (
-          <p className="text-center col-span-full">No products found.</p>
+          <p className="text-gold text-lg">No products found.</p>
         )}
       </div>
     </div>

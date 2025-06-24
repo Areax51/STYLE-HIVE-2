@@ -1,10 +1,11 @@
 import http from "http";
-import { Server } from "socket.io";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { Server } from "socket.io";
 import connectDB from "./config/db.js";
-import authMiddleware from "./middleware/auth.js";
+import authRoutes from "./routes/auth.js";
+import productRoutes from "./routes/products.js"; // ✅ Make sure this exists
 import { OpenAI } from "openai";
 
 dotenv.config();
@@ -14,6 +15,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+
+// ✅ HTTP & WebSocket Server
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -21,6 +27,7 @@ const io = new Server(server, {
   },
 });
 
+// ✅ OpenAI Streaming Chat Handler
 const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY });
 
 io.on("connection", (socket) => {
@@ -60,6 +67,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(process.env.PORT || 5000, () =>
-  console.log(`Server running on port ${process.env.PORT || 5000}`)
-);
+// ✅ Start the server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

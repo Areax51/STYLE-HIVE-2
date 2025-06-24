@@ -1,4 +1,3 @@
-// components/ProductCard.jsx
 const ProductCard = ({ product }) => {
   return (
     <div className="bg-black text-gold border border-gold rounded-2xl shadow-md p-4 hover:scale-105 transition-transform duration-300">

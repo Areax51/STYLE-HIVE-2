@@ -9,50 +9,14 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const { addToFavorites } = useFavorites();
 
-  const useMockData = false; // set to true if backend is down
-
-  const sampleProducts = [
-    {
-      _id: "1",
-      name: "Gold Trim Blazer",
-      description: "A sleek blazer with golden accents.",
-      price: 120,
-      image:
-        "https://images.unsplash.com/photo-1618375531913-c75e0f4639f8?auto=format&fit=crop&w=400&q=80",
-      category: "Men",
-    },
-    {
-      _id: "2",
-      name: "Black Streetwear Set",
-      description: "Comfortable and stylish black set.",
-      price: 95,
-      image:
-        "https://images.unsplash.com/photo-1618354691444-327e327ac2b3?auto=format&fit=crop&w=400&q=80",
-      category: "Women",
-    },
-    {
-      _id: "3",
-      name: "Elegant Urban Jacket",
-      description: "Chic urban outerwear for cool nights.",
-      price: 140,
-      image:
-        "https://images.unsplash.com/photo-1600180758890-d303d6f6084e?auto=format&fit=crop&w=400&q=80",
-      category: "Accessories",
-    },
-  ];
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        if (useMockData) {
-          setProducts(sampleProducts);
-        } else {
-          const res = await axios.get("/api/products");
-          setProducts(res.data);
-        }
+        const res = await axios.get("/api/products");
+        setProducts(res.data);
       } catch (err) {
-        console.error("Failed to fetch products:", err);
-        setProducts(sampleProducts); // fallback
+        console.error("❌ Failed to fetch products:", err);
+        setProducts([]); // no fallback
       }
     };
     fetchProducts();

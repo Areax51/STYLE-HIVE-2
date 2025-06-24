@@ -1,59 +1,44 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
+import React from "react";
+import { useFavorites } from "../context/FavoritesContext";
 
 const Favorites = () => {
-  const [favorites, setFavorites] = useState([]);
-
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const res = await axios.get("/api/chat/history", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const liked = res.data.filter((msg) => msg.liked);
-        setFavorites(liked);
-      } catch (err) {
-        console.error("Error fetching favorites:", err.message);
-      }
-    };
-
-    fetchFavorites();
-  }, []);
+  const { favorites, removeFromFavorites } = useFavorites();
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl font-bold text-gold mb-6">Your Favorite Looks</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {favorites.map((fav) => {
-          const productMatch = fav.response.match(
-            /\b[A-Z][a-z]+(?: [A-Z][a-z]+)*\b/
-          );
-          return (
-            <div
-              key={fav._id}
-              className="bg-white/10 backdrop-blur-md border border-gold rounded-xl p-4 shadow-gold flex flex-col justify-between"
-            >
-              <div>
-                <h2 className="text-gold text-lg font-semibold mb-2">
-                  You: {fav.prompt}
-                </h2>
-                <p className="text-sm leading-relaxed mb-3">{fav.response}</p>
-              </div>
-              {productMatch && (
-                <Link
-                  to={`/search?query=${encodeURIComponent(productMatch[0])}`}
-                  className="text-yellow-400 hover:underline text-sm mt-auto"
-                >
-                  Find "{productMatch[0]}"
-                </Link>
-              )}
+    <div className="min-h-screen bg-black text-white px-6 py-10">
+      <h1 className="text-3xl font-bold text-gold mb-6 text-center">
+        Saved Favorites
+      </h1>
+      {favorites.length === 0 ? (
+        <p className="text-center text-gray-400">
+          You haven’t saved anything yet.
+        </p>
+      ) : (
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {favorites.map((product) => (
+            <div key={product._id} className="bg-gray-800 p-4 rounded-xl">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-48 object-cover rounded-lg mb-3"
+              />
+              <h2 className="text-xl font-semibold text-gold">
+                {product.name}
+              </h2>
+              <p className="text-sm text-gray-300 mb-2">
+                {product.description}
+              </p>
+              <p className="text-lg font-bold">${product.price}</p>
+              <button
+                onClick={() => removeFromFavorites(product._id)}
+                className="mt-2 w-full bg-red-600 text-white rounded-lg py-1 hover:bg-red-500"
+              >
+                Remove
+              </button>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

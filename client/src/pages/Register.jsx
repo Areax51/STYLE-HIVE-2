@@ -3,56 +3,89 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Register = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/api/auth/register", { name, email, password });
+      await axios.post("/api/auth/register", formData);
       navigate("/login");
     } catch (err) {
-      console.error(err.message);
+      setError("Registration failed. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <form
-        onSubmit={handleRegister}
-        className="bg-white/10 backdrop-blur-lg p-8 rounded-xl border border-gold shadow-gold w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold text-gold mb-6">Create Account</h2>
-        <input
-          type="text"
-          placeholder="Full Name"
-          className="w-full p-3 mb-4 rounded bg-gray-800 text-white border border-gold focus:outline-none"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-3 mb-4 rounded bg-gray-800 text-white border border-gold focus:outline-none"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-3 mb-6 rounded bg-gray-800 text-white border border-gold focus:outline-none"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="w-full bg-gold text-black font-bold py-3 rounded hover:bg-yellow-400 transition"
-        >
-          Register
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-900 via-black to-gray-900 p-6">
+      <div className="bg-white shadow-2xl rounded-2xl p-10 w-full max-w-md">
+        <h2 className="text-3xl font-extrabold text-center text-gold mb-6">
+          Create Account
+        </h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Username
+            </label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-gold hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
+          >
+            Sign Up
+          </button>
+        </form>
+        <p className="mt-4 text-center text-sm text-gray-500">
+          Already have an account?{" "}
+          <a href="/login" className="text-gold hover:underline">
+            Log in
+          </a>
+        </p>
+      </div>
     </div>
   );
 };

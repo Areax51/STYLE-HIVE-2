@@ -4,13 +4,13 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Products from "./pages/Products";
-import Saved from "./pages/Savedd";
+import Saved from "./pages/Saved"; // fixed from "Savedd"
 import Recommend from "./pages/Recommend";
 import Chat from "./pages/Chat";
 import Favorites from "./pages/Favorites";
 import ImageStylist from "./components/ImageStylist";
 import ChatBoxRealtime from "./components/ChatBoxRealtime";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute"; // no longer needed for now
 
 function App() {
   return (
@@ -24,38 +24,10 @@ function App() {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/stylist" element={<ImageStylist />} />
           <Route path="/chat-live" element={<ChatBoxRealtime />} />
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute>
-                <Products />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute>
-                <Chat />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/saved"
-            element={
-              <ProtectedRoute>
-                <Saved />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/recommend"
-            element={
-              <ProtectedRoute>
-                <Recommend />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/products" element={<Products />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route path="/recommend" element={<Recommend />} />
         </Routes>
       </main>
     </div>

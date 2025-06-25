@@ -2,22 +2,28 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useFavorites } from "../context/FavoritesContext";
 import fallbackProducts from "../data/FallbackProducts";
+import { sendChatMessage } from "../api"; // make sure this is correctly defined
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [aiResponse, setAiResponse] = useState("");
   const { addToFavorites } = useFavorites();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get("/api/products");
-        setProducts(res.data);
+        if (Array.isArray(res.data)) {
+          setProducts(res.data);
+        } else {
+          setProducts(fallbackProducts);
+        }
       } catch (err) {
-        console.error("❌ Failed to fetch from API. Using fallback products.");
-        setProducts(fallbackProducts); // ✅ use fallback
+        console.error("❌ API fetch failed, using fallback.");
+        setProducts(fallbackProducts);
       }
     };
     fetchProducts();
@@ -28,6 +34,18 @@ const Products = () => {
       product.name.toLowerCase().includes(query.toLowerCase()) &&
       (filter === "All" || product.category === filter)
   );
+
+  const handleAIResponse = async () => {
+    try {
+      const res = await sendChatMessage(
+        `Give fashion feedback and styling tips for this product: ${selectedProduct.name} - ${selectedProduct.description}`
+      );
+      setAiResponse(res.data.reply);
+    } catch (err) {
+      console.error("AI chat failed:", err);
+      setAiResponse("⚠️ AI could not process your request.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black to-gray-900 text-white px-6 py-10 relative">
@@ -67,7 +85,10 @@ const Products = () => {
             <div
               key={product._id}
               className="bg-gray-800 rounded-xl shadow-lg hover:shadow-gold/30 transition duration-300 p-4 cursor-pointer"
-              onClick={() => setSelectedProduct(product)}
+              onClick={() => {
+                setSelectedProduct(product);
+                setAiResponse(""); // reset AI reply
+              }}
             >
               <img
                 src={product.image}
@@ -108,15 +129,23 @@ const Products = () => {
             <p className="text-lg font-bold mb-4">${selectedProduct.price}</p>
             <div className="flex justify-between gap-4">
               <button
-                onClick={() => addToFavorites(selectedProduct._id)}
+                onClick={() => addToFavorites(selectedProduct)}
                 className="flex-1 bg-gold text-black font-bold py-2 px-4 rounded-lg hover:bg-yellow-400 transition"
               >
                 Add to Favorites
               </button>
-              <button className="flex-1 border border-gold text-gold font-bold py-2 px-4 rounded-lg hover:bg-gold hover:text-black transition">
+              <button
+                onClick={handleAIResponse}
+                className="flex-1 border border-gold text-gold font-bold py-2 px-4 rounded-lg hover:bg-gold hover:text-black transition"
+              >
                 Try in AI
               </button>
             </div>
+            {aiResponse && (
+              <p className="mt-4 text-sm text-white bg-gray-800 p-3 rounded-lg border border-gold whitespace-pre-wrap">
+                {aiResponse}
+              </p>
+            )}
           </div>
         </div>
       )}

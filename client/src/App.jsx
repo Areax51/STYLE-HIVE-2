@@ -26,7 +26,7 @@ function App() {
           <Route path="/chat-live" element={<ChatBoxRealtime />} />
           <Route path="/products" element={<Products />} />
           <Route path="/chat" element={<Chat />} />
-          <Route path="/saved" element={<Saved />} />
+          <Route path="/saved" element={<Savedd />} />
           <Route path="/recommend" element={<Recommend />} />
         </Routes>
       </main>

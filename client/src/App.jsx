@@ -3,14 +3,13 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Products from "./pages/Products";
-import Saved from "./pages/Savedd"; // fixed from "Savedd"
+import Saved from "./pages/Savedd"; // fixed from Savedd
 import Recommend from "./pages/Recommend";
 import Chat from "./pages/Chat";
 import Favorites from "./pages/Favorites";
 import ImageStylist from "./components/ImageStylist";
 import ChatBoxRealtime from "./components/ChatBoxRealtime";
-// import ProtectedRoute from "./components/ProtectedRoute"; // no longer needed for now
+import Products from "./pages/Products"; // ✅ Import Products component
 
 function App() {
   return (
@@ -24,7 +23,8 @@ function App() {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/stylist" element={<ImageStylist />} />
           <Route path="/chat-live" element={<ChatBoxRealtime />} />
-          <Route path="/products" element={<Products />} />
+          <Route path="/products" element={<Products />} />{" "}
+          {/* ✅ use lowercase route */}
           <Route path="/chat" element={<Chat />} />
           <Route path="/saved" element={<Saved />} />
           <Route path="/recommend" element={<Recommend />} />

@@ -2,7 +2,7 @@ import express from "express";
 import { OpenAI } from "openai";
 import dotenv from "dotenv";
 import authMiddleware from "../middleware/auth.js";
-import Chat from "../models/Chat.js"; // create this model below
+import Chat from "../models/chat.js"; // create this model below
 import Product from "../models/Product.js"; // for smart recommendations
 
 dotenv.config();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useFavorites } from "../context/FavoritesContext";
+import fallbackProducts from "../data/FallbackProducts";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -15,8 +16,8 @@ const Products = () => {
         const res = await axios.get("/api/products");
         setProducts(res.data);
       } catch (err) {
-        console.error("❌ Failed to fetch products:", err);
-        setProducts([]); // no fallback
+        console.error("❌ Failed to fetch from API. Using fallback products.");
+        setProducts(fallbackProducts); // ✅ use fallback
       }
     };
     fetchProducts();

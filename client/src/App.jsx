@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Products from "./pages/Products";
-import Saved from "./pages/Saved"; // fixed from "Savedd"
+import Saved from "./pages/Savedd"; // fixed from "Savedd"
 import Recommend from "./pages/Recommend";
 import Chat from "./pages/Chat";
 import Favorites from "./pages/Favorites";
@@ -26,7 +26,7 @@ function App() {
           <Route path="/chat-live" element={<ChatBoxRealtime />} />
           <Route path="/products" element={<Products />} />
           <Route path="/chat" element={<Chat />} />
-          <Route path="/saved" element={<Savedd />} />
+          <Route path="/saved" element={<Saved />} />
           <Route path="/recommend" element={<Recommend />} />
         </Routes>
       </main>

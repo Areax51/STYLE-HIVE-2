@@ -10,7 +10,7 @@ import Favorites from "./pages/Favorites";
 import ImageStylist from "./components/ImageStylist";
 import ChatBoxRealtime from "./components/ChatBoxRealtime";
 import Products from "./pages/Products"; // ✅ Import Products component
-import ImageStylist from "./pages/ImageStylist";
+
 function App() {
   return (
     <div className="min-h-screen bg-black text-white">

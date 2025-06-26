@@ -23,6 +23,12 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(
+  cors({
+    origin: ["https://style-hive-2.vercel.app"],
+    credentials: true,
+  })
+);
 
 // API Routes
 app.use("/api/auth", authRoutes);

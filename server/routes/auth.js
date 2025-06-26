@@ -8,6 +8,17 @@ import authMiddleware from "../middleware/auth.js";
 dotenv.config();
 const router = express.Router();
 
+router.post("/dev-reset-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ msg: "User not found" });
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  user.password = hashed;
+  await user.save();
+
+  res.json({ msg: "Password reset" });
+});
 // 🔐 Protected route: Get current user
 router.get("/me", authMiddleware, async (req, res) => {
   try {

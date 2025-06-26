@@ -4,16 +4,17 @@ import { useFavorites } from "../context/FavoritesContext";
 
 const ProductCard = ({ product }) => {
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
-  const isFavorited = favorites.some((fav) => fav._id === product._id);
+  const isFavorited = favorites.some((f) => f._id === product._id);
 
   <Heart
-    className={`cursor-pointer transition ${
-      isFavorited ? "text-red-500 fill-red-500" : "text-gold"
-    }`}
     onClick={() =>
       isFavorited ? removeFromFavorites(product._id) : addToFavorites(product)
     }
+    className={`cursor-pointer transition ${
+      isFavorited ? "fill-red-600 text-red-600" : "text-gold"
+    }`}
   />;
+
   return (
     <div className="bg-gray-800 p-4 rounded-xl border border-gold shadow-lg">
       <img

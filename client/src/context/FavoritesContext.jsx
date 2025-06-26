@@ -24,34 +24,34 @@ export const FavoritesProvider = ({ children }) => {
     };
     fetchFavorites();
   }, [user, token]);
-
   const addToFavorites = async (product) => {
-    if (!user || !token) return;
     try {
       await axios.post(
         `/api/favorites/${user._id}`,
-        { productId: product._id },
+        {
+          productId: product._id,
+        },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setFavorites((prev) =>
-        prev.some((p) => p._id === product._id) ? prev : [...prev, product]
-      );
+      setFavorites((prev) => [...prev, product]);
     } catch (err) {
-      console.error("❌ Add to favorites failed:", err.message);
+      console.error(
+        "Add to favorites failed:",
+        err.response?.data || err.message
+      );
     }
   };
 
   const removeFromFavorites = async (productId) => {
-    if (!user || !token) return;
     try {
       await axios.delete(`/api/favorites/${user._id}/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFavorites((prev) => prev.filter((p) => p._id !== productId));
     } catch (err) {
-      console.error("❌ Remove from favorites failed:", err.message);
+      console.error("Remove from favorites failed:", err.message);
     }
   };
 

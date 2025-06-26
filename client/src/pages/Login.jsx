@@ -5,7 +5,6 @@ import { loginUser } from "../utils/api";
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,7 +20,8 @@ const Login = () => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      navigate("/"); // Redirect to home or dashboard
+      // 🚨 Force full reload so Navbar re-checks localStorage
+      window.location.href = "/";
     } catch (err) {
       setError(err.response?.data?.msg || "Login failed");
     }

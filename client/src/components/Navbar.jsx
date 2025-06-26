@@ -6,11 +6,10 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [dropdown, setDropdown] = useState(false);
   const navigate = useNavigate();
-
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) setUser(JSON.parse(savedUser));
-  }, []);
+  }, [window.location.pathname]); // <== Add this so it reacts on navigation
 
   const handleLogout = () => {
     localStorage.removeItem("token");

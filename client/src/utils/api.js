@@ -1,10 +1,12 @@
-// src/api.js
+// src/utils/api.js
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL:
+    import.meta.env.VITE_API_BASE || "https://style-hive-2.onrender.com/api",
 });
 
+// Add token to headers for protected routes
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;

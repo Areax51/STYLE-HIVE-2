@@ -1,14 +1,25 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import TypingDots from "./TypingDots";
 import { Heart } from "lucide-react";
 
-const ChatBox = () => {
+const socket = io("http://localhost:5000"); // change if deployed
+
+const AIChatBox = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [products, setProducts] = useState([]);
+  const [currentStream, setCurrentStream] = useState("");
   const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
 
+  // 🔁 Scroll to latest message
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, currentStream]);
+
+  // 🧠 Load chat history + products
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -23,31 +34,24 @@ const ChatBox = () => {
         setMessages(chatRes.data.reverse());
         setProducts(productRes.data);
       } catch (err) {
-        console.error("Error fetching chat or products:", err.message);
+        console.error("Error loading data", err.message);
       }
     };
-
     fetchData();
   }, []);
 
-  const getProductFromResponse = (text) => {
-    return products.find((p) =>
-      text.toLowerCase().includes(p.name.toLowerCase())
-    );
-  };
+  // 🔁 Socket listeners
+  useEffect(() => {
+    socket.on("aiReplyChunk", (chunk) => {
+      setCurrentStream((prev) => prev + chunk);
+    });
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-
-    const userMessage = { prompt: input, response: null };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setLoading(true);
-
-    try {
+    socket.on("aiReplyComplete", async (fullReply) => {
+      setLoading(false);
+      const lastUserMsg = messages[messages.length - 1];
       const res = await axios.post(
         "/api/chat",
-        { message: input },
+        { message: lastUserMsg.prompt },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -55,16 +59,48 @@ const ChatBox = () => {
         }
       );
 
-      const aiReply = res.data.reply;
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        { ...userMessage, response: aiReply, _id: res.data.id },
-      ]);
-    } catch (err) {
-      console.error("Chat failed:", err.message);
-    } finally {
+      const newChat = {
+        ...lastUserMsg,
+        response: fullReply,
+        _id: res.data.id,
+      };
+
+      setMessages((prev) => [...prev.slice(0, -1), newChat]);
+      setCurrentStream("");
+    });
+
+    socket.on("aiReplyError", (err) => {
+      console.error("AI Error:", err);
       setLoading(false);
-    }
+      setCurrentStream("");
+    });
+
+    return () => {
+      socket.off("aiReplyChunk");
+      socket.off("aiReplyComplete");
+      socket.off("aiReplyError");
+    };
+  }, [messages]);
+
+  const getProductFromResponse = (text) => {
+    return products.find((p) =>
+      text.toLowerCase().includes(p.name.toLowerCase())
+    );
+  };
+
+  const sendMessage = () => {
+    if (!input.trim()) return;
+
+    const newMsg = { prompt: input, response: null };
+    setMessages((prev) => [...prev, newMsg]);
+    setInput("");
+    setCurrentStream("");
+    setLoading(true);
+
+    socket.emit("userMessage", {
+      message: input,
+      token: localStorage.getItem("token"),
+    });
   };
 
   const toggleLike = async (id, current) => {
@@ -81,7 +117,7 @@ const ChatBox = () => {
         prev.map((m) => (m._id === id ? { ...m, liked: !current } : m))
       );
     } catch (err) {
-      console.error("Failed to toggle like", err.message);
+      console.error("Like failed", err.message);
     }
   };
 
@@ -97,26 +133,26 @@ const ChatBox = () => {
                 <p>{msg.prompt}</p>
               </div>
               {msg.response && (
-                <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-gold">
+                <div className="bg-white/10 p-4 rounded-xl border border-gold">
                   <div className="flex justify-between items-start">
                     <div className="text-white space-y-2 flex-1">
                       <p className="text-gold font-bold">StyleHive AI:</p>
-                      <p className="leading-relaxed">{msg.response}</p>
+                      <p>{msg.response}</p>
                       {product && (
-                        <div className="mt-3 border border-gold rounded-xl overflow-hidden flex flex-col sm:flex-row shadow-md hover:scale-[1.02] transition-transform">
+                        <div className="mt-3 border border-gold rounded-xl overflow-hidden flex flex-col sm:flex-row">
                           <img
                             src={product.image}
                             alt={product.name}
                             className="w-full sm:w-40 h-40 object-cover"
                           />
-                          <div className="p-4 flex flex-col justify-between">
+                          <div className="p-4">
                             <h3 className="text-lg font-bold text-gold">
                               {product.name}
                             </h3>
                             <p className="text-sm">${product.price}</p>
                             <a
                               href={`/product/${product._id}`}
-                              className="text-sm text-yellow-400 hover:underline mt-2"
+                              className="text-yellow-400 hover:underline text-sm mt-2 block"
                             >
                               View product
                             </a>
@@ -139,10 +175,13 @@ const ChatBox = () => {
           );
         })}
         {loading && (
-          <div className="flex items-center gap-2 text-gray-400 italic">
-            StyleHive AI is typing <TypingDots />
+          <div className="bg-white/10 p-4 rounded-xl border border-gold">
+            <p className="text-gold font-bold">StyleHive AI:</p>
+            <p className="italic text-gray-300">{currentStream}</p>
+            <TypingDots />
           </div>
         )}
+        <div ref={scrollRef} />
       </div>
 
       <div className="flex gap-2">
@@ -165,4 +204,4 @@ const ChatBox = () => {
   );
 };
 
-export default ChatBox;
+export default AIChatBox;

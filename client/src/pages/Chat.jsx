@@ -1,13 +1,21 @@
 import React from "react";
-import ChatBox from "../components/ChatBox";
+import AIChatBox from "../components/AIChatBox";
 
 const Chat = () => {
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-6">
-      <h1 className="text-3xl font-bold text-gold mb-6">
-        StyleHive AI Assistant
-      </h1>
-      <ChatBox />
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-gray-800 text-white flex flex-col items-center px-4 py-10 sm:px-8">
+      <div className="text-center mb-10">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-gold font-[Orbitron]">
+          Talk to StyleHive AI
+        </h1>
+        <p className="text-gray-400 text-md sm:text-lg font-outfit mt-2">
+          Get fashion advice, outfit suggestions, and personalized style help.
+        </p>
+      </div>
+
+      <div className="w-full max-w-5xl h-[75vh] rounded-2xl border border-gold bg-black/50 shadow-xl backdrop-blur-md p-4 sm:p-6">
+        <AIChatBox />
+      </div>
     </div>
   );
 };

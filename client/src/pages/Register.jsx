@@ -1,88 +1,85 @@
 import { useState } from "react";
+import { registerUser } from "../utils/api";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const Register = () => {
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      await axios.post("/api/auth/register", formData);
-      navigate("/login");
+      const res = await registerUser(form);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      navigate("/products");
     } catch (err) {
-      setError("Registration failed. Please try again.");
+      setError(err.response?.data?.msg || "Registration failed");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-900 via-black to-gray-900 p-6">
-      <div className="bg-white shadow-2xl rounded-2xl p-10 w-full max-w-md">
-        <h2 className="text-3xl font-extrabold text-center text-gold mb-6">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-gray-900 p-8 rounded-xl shadow-lg border border-gray-700">
+        <h2 className="text-3xl font-bold text-center text-gold mb-6">
           Create Account
         </h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"
-              required
-            />
-          </div>
+
+        {error && (
+          <p className="text-red-400 text-sm text-center mb-4">{error}</p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="username"
+            value={form.username}
+            onChange={handleChange}
+            placeholder="Username"
+            required
+            className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Email"
+            required
+            className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+          />
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Password"
+            required
+            className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+          />
           <button
             type="submit"
-            className="w-full bg-gold hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
+            className="w-full bg-gold text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 transition"
           >
-            Sign Up
+            Register
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-500">
+
+        <p className="text-sm text-gray-400 text-center mt-4">
           Already have an account?{" "}
           <a href="/login" className="text-gold hover:underline">
-            Log in
+            Login
           </a>
         </p>
       </div>

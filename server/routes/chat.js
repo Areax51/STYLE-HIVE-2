@@ -2,14 +2,14 @@ import express from "express";
 import { OpenAI } from "openai";
 import dotenv from "dotenv";
 import authMiddleware from "../middleware/auth.js";
-import Chat from "../models/chat.js"; // create this model below
-import Product from "../models/Product.js"; // for smart recommendations
+import Chat from "../models/chat.js";
+import Product from "../models/Product.js";
 
 dotenv.config();
 
 const router = express.Router();
 
-const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // 🔥 FIXED typo (was OPEN_AI_KEY)
 
 router.post("/", authMiddleware, async (req, res) => {
   const { message } = req.body;
@@ -23,10 +23,10 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const aiInstructions = `
 You are StyleHive AI, a futuristic fashion stylist assistant.
-- Recommend outfit ideas
+- Recommend outfit ideas.
 - Suggest products from this list when relevant:
 ${productList}
-- Use a friendly, stylish tone
+- Respond with confidence and flair.
 `;
 
     const completion = await openai.chat.completions.create({
@@ -39,11 +39,12 @@ ${productList}
 
     const reply = completion.choices[0].message.content;
 
-    // Save chat
+    // Save to DB
     const newChat = new Chat({
       userId: req.user.id,
       prompt: message,
       response: reply,
+      timestamp: new Date(),
     });
     await newChat.save();
 
@@ -54,8 +55,7 @@ ${productList}
   }
 });
 
-export default router;
-// GET /api/chat/history
+// 🟡 GET chat history
 router.get("/history", authMiddleware, async (req, res) => {
   try {
     const history = await Chat.find({ userId: req.user.id })
@@ -66,3 +66,20 @@ router.get("/history", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Failed to fetch chat history" });
   }
 });
+// PATCH /api/chat/:id — update liked status
+router.patch("/:id", authMiddleware, async (req, res) => {
+  try {
+    const chat = await Chat.findByIdAndUpdate(
+      req.params.id,
+      { liked: req.body.liked },
+      { new: true }
+    );
+    if (!chat) return res.status(404).json({ msg: "Chat not found" });
+    res.json(chat);
+  } catch (err) {
+    console.error("Like update error:", err.message);
+    res.status(500).json({ msg: "Failed to update like status" });
+  }
+});
+
+export default router;

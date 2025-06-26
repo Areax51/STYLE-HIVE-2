@@ -12,10 +12,14 @@ export const FavoritesProvider = ({ children }) => {
     const fetchFavorites = async () => {
       if (user) {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`/api/favorites/${user._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setFavorites(res.data);
+        const res = await axios.post(
+          `/api/favorites/${user._id}`,
+          { product }, // instead of { productId }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setFavorites((prev) => [...prev, product]); // add full product, not just ID
       }
     };
     fetchFavorites();

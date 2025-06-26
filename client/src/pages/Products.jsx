@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useFavorites } from "../context/FavoritesContext";
 import fallbackProducts from "../data/FallbackProducts";
-import { sendChatMessage } from "../api"; // make sure this is correctly defined
+import { sendChatMessage } from "../utils/api"; // make sure this is correctly defined
 
 const Products = () => {
   const [products, setProducts] = useState([]);

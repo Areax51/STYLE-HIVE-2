@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import { OpenAI } from "openai";
 import dotenv from "dotenv";
 import authMiddleware from "../middleware/auth.js";
@@ -8,9 +9,10 @@ import Product from "../models/Product.js";
 dotenv.config();
 
 const router = express.Router();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const upload = multer({ storage: multer.memoryStorage() }); // 🔄 for image upload
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // 🔥 FIXED typo (was OPEN_AI_KEY)
-
+// 🧠 Text Chat Route
 router.post("/", authMiddleware, async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ msg: "Message is required" });
@@ -39,7 +41,6 @@ ${productList}
 
     const reply = completion.choices[0].message.content;
 
-    // Save to DB
     const newChat = new Chat({
       userId: req.user.id,
       prompt: message,
@@ -55,7 +56,7 @@ ${productList}
   }
 });
 
-// 🟡 GET chat history
+// 📜 Chat History
 router.get("/history", authMiddleware, async (req, res) => {
   try {
     const history = await Chat.find({ userId: req.user.id })
@@ -66,7 +67,8 @@ router.get("/history", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Failed to fetch chat history" });
   }
 });
-// PATCH /api/chat/:id — update liked status
+
+// ❤️ Like / Unlike a Chat
 router.patch("/:id", authMiddleware, async (req, res) => {
   try {
     const chat = await Chat.findByIdAndUpdate(
@@ -81,5 +83,49 @@ router.patch("/:id", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Failed to update like status" });
   }
 });
+
+// 🖼 Image Styling Route (GPT-4 Vision)
+router.post(
+  "/image",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ msg: "Image is required" });
+
+    try {
+      const imageBuffer = req.file.buffer;
+      const base64Image = imageBuffer.toString("base64");
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4-vision-preview",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Describe this fashion look. Suggest the style, occasion, and related clothing items or accessories.",
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${req.file.mimetype};base64,${base64Image}`,
+                },
+              },
+            ],
+          },
+        ],
+        max_tokens: 600,
+      });
+
+      const aiReply =
+        response.choices?.[0]?.message?.content || "No response from AI.";
+      res.json({ response: aiReply });
+    } catch (err) {
+      console.error("🛑 AI Image Styling Error:", err);
+      res.status(500).json({ msg: "AI image analysis failed" });
+    }
+  }
+);
 
 export default router;

@@ -1,43 +1,53 @@
+// backend/routes/favorites.js
 import express from "express";
-import Favorite from "../models/Favorite.js";
 import authMiddleware from "../middleware/auth.js";
+import Favorite from "../models/Favorite.js";
 
 const router = express.Router();
 
-// GET favorites for user
+// Get all favorites for a user
 router.get("/:userId", authMiddleware, async (req, res) => {
   try {
-    const favorites = await Favorite.find({ userId: req.params.userId });
-    res.json(favorites.map((fav) => fav.product)); // return array of products
+    const favorites = await Favorite.find({
+      userId: req.params.userId,
+    }).populate("productId");
+    res.json(favorites.map((f) => f.productId));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Get favorites error:", err);
+    res.status(500).json({ msg: "Failed to fetch favorites" });
   }
 });
 
-// POST add favorite
+// Add a favorite
 router.post("/:userId", authMiddleware, async (req, res) => {
   try {
-    const newFav = new Favorite({
+    const { productId } = req.body;
+    const exists = await Favorite.findOne({
       userId: req.params.userId,
-      product: req.body.product,
+      productId,
     });
-    await newFav.save();
-    res.status(201).json(newFav.product);
+    if (exists) return res.status(400).json({ msg: "Already in favorites" });
+
+    const favorite = new Favorite({ userId: req.params.userId, productId });
+    await favorite.save();
+    res.status(201).json(favorite);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Add favorite error:", err);
+    res.status(500).json({ msg: "Failed to add favorite" });
   }
 });
 
-// DELETE favorite
+// Remove a favorite
 router.delete("/:userId/:productId", authMiddleware, async (req, res) => {
   try {
     await Favorite.findOneAndDelete({
       userId: req.params.userId,
-      "product._id": req.params.productId,
+      productId: req.params.productId,
     });
-    res.json({ message: "Favorite removed" });
+    res.json({ msg: "Favorite removed" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Delete favorite error:", err);
+    res.status(500).json({ msg: "Failed to delete favorite" });
   }
 });
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useFavorites } from "../context/FavoritesContext";
 import fallbackProducts from "../data/FallbackProducts";
-import { sendChatMessage } from "../utils/api"; // make sure this is correctly defined
+import { sendChatMessage } from "../utils/api";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -15,14 +15,14 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("/api/products");
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
         if (Array.isArray(res.data)) {
           setProducts(res.data);
         } else {
-          setProducts(fallbackProducts);
+          throw new Error("Invalid product format");
         }
       } catch (err) {
-        console.error("❌ API fetch failed, using fallback.");
+        console.error("❌ API fetch failed, using fallback.", err.message);
         setProducts(fallbackProducts);
       }
     };
@@ -42,7 +42,7 @@ const Products = () => {
       );
       setAiResponse(res.data.reply);
     } catch (err) {
-      console.error("AI chat failed:", err);
+      console.error("AI chat failed:", err.message);
       setAiResponse("⚠️ AI could not process your request.");
     }
   };
@@ -93,6 +93,9 @@ const Products = () => {
               <img
                 src={product.image}
                 alt={product.name}
+                onError={(e) => {
+                  e.target.src = "/fallback.jpg"; // optional fallback
+                }}
                 className="w-full h-56 object-cover rounded-lg mb-3"
               />
               <h2 className="text-xl font-semibold text-gold">

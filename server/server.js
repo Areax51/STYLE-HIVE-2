@@ -15,42 +15,46 @@ import favoritesRoutes from "./routes/favorites.js";
 
 // Models
 import Product from "./models/Product.js";
-import Chat from "./models/chat.js"; // to save chat history
+import Chat from "./models/chat.js";
 
 dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+
+// ✅ Middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://style-hive-2.vercel.app"],
+    origin: [
+      "https://style-hive-2.vercel.app", // ✅ frontend
+      "http://localhost:5173", // ✅ for local dev
+    ],
     credentials: true,
   })
 );
 
-// API Routes
+// ✅ API Endpoints
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/chat", chatRoutes);
+app.use("/api/chat", chatRoutes); // includes /chat/image
 app.use("/api/favorites", favoritesRoutes);
 
-// Create HTTP server
+// ✅ Create HTTP server for WebSocket
 const server = http.createServer(app);
 
-// WebSocket setup
+// ✅ Setup WebSocket with Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: ["https://style-hive-2.vercel.app", "http://localhost:5173"],
     methods: ["GET", "POST"],
   },
 });
 
-// OpenAI setup
-const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY });
+// ✅ OpenAI Client
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // ✅ FIXED: Use correct env key
 
-// WebSocket connection
+// ✅ WebSocket AI Stream Handler
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
@@ -60,7 +64,6 @@ io.on("connection", (socket) => {
     }
 
     let userId;
-
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       userId = decoded.id;
@@ -75,11 +78,12 @@ io.on("connection", (socket) => {
         .join("\n");
 
       const aiInstructions = `
-You are StyleHive AI, a stylish, helpful assistant.
-- Suggest fashion tips, outfit ideas, and style matches.
-- Use these products when relevant:\n${productList}
-- Be friendly, concise, and confident.
-      `;
+You are StyleHive AI, a stylish, futuristic assistant.
+- Recommend outfits and style advice.
+- Use these products when relevant:
+${productList}
+- Be confident, brief, and inspiring.
+`;
 
       const stream = await openai.chat.completions.create({
         model: "gpt-4",
@@ -98,22 +102,23 @@ You are StyleHive AI, a stylish, helpful assistant.
         socket.emit("aiReplyChunk", text);
       }
 
-      // Save full chat to DB
-      const newChat = new Chat({
+      // ✅ Save to DB
+      await new Chat({
         userId,
         prompt: message,
         response: fullReply,
-      });
-      await newChat.save();
+      }).save();
 
       socket.emit("aiReplyComplete", fullReply);
     } catch (err) {
-      console.error("Streaming error:", err.message);
+      console.error("🛑 Streaming error:", err.message);
       socket.emit("aiReplyError", "AI error occurred");
     }
   });
 });
 
-// Start server
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+);

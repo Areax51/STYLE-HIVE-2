@@ -1,15 +1,13 @@
+// backend/models/Favorite.js
 import mongoose from "mongoose";
 
-const favoriteSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  product: {
-    _id: mongoose.Schema.Types.ObjectId,
-    name: String,
-    description: String,
-    price: Number,
-    category: String,
-    image: String,
+const FavoriteSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
   },
 });
 
-export default mongoose.model("Favorite", favoriteSchema);
+export default mongoose.model("Favorite", FavoriteSchema);

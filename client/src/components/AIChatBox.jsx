@@ -4,7 +4,10 @@ import { io } from "socket.io-client";
 import TypingDots from "./TypingDots";
 import { Heart } from "lucide-react";
 
-const socket = io("http://localhost:5000"); // change if deployed
+// ✅ Use deployed WebSocket URL
+const socket = io(import.meta.env.VITE_SOCKET_URL, {
+  transports: ["websocket"],
+});
 
 const AIChatBox = () => {
   const [input, setInput] = useState("");
@@ -14,22 +17,20 @@ const AIChatBox = () => {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
 
-  // 🔁 Scroll to latest message
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, currentStream]);
 
-  // 🧠 Load chat history + products
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [chatRes, productRes] = await Promise.all([
-          axios.get("/api/chat/history", {
+          axios.get(`${import.meta.env.VITE_API_URL}/chat/history`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }),
-          axios.get("/api/products"),
+          axios.get(`${import.meta.env.VITE_API_URL}/products`),
         ]);
         setMessages(chatRes.data.reverse());
         setProducts(productRes.data);
@@ -40,7 +41,6 @@ const AIChatBox = () => {
     fetchData();
   }, []);
 
-  // 🔁 Socket listeners
   useEffect(() => {
     socket.on("aiReplyChunk", (chunk) => {
       setCurrentStream((prev) => prev + chunk);
@@ -49,20 +49,10 @@ const AIChatBox = () => {
     socket.on("aiReplyComplete", async (fullReply) => {
       setLoading(false);
       const lastUserMsg = messages[messages.length - 1];
-      const res = await axios.post(
-        "/api/chat",
-        { message: lastUserMsg.prompt },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
 
       const newChat = {
         ...lastUserMsg,
         response: fullReply,
-        _id: res.data.id,
       };
 
       setMessages((prev) => [...prev.slice(0, -1), newChat]);
@@ -82,12 +72,6 @@ const AIChatBox = () => {
     };
   }, [messages]);
 
-  const getProductFromResponse = (text) => {
-    return products.find((p) =>
-      text.toLowerCase().includes(p.name.toLowerCase())
-    );
-  };
-
   const sendMessage = () => {
     if (!input.trim()) return;
 
@@ -103,22 +87,10 @@ const AIChatBox = () => {
     });
   };
 
-  const toggleLike = async (id, current) => {
-    try {
-      await axios.patch(
-        `/api/chat/${id}`,
-        { liked: !current },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
-      setMessages((prev) =>
-        prev.map((m) => (m._id === id ? { ...m, liked: !current } : m))
-      );
-    } catch (err) {
-      console.error("Like failed", err.message);
-    }
+  const getProductFromResponse = (text) => {
+    return products.find((p) =>
+      text.toLowerCase().includes(p.name.toLowerCase())
+    );
   };
 
   return (
@@ -160,14 +132,7 @@ const AIChatBox = () => {
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => toggleLike(msg._id, msg.liked)}
-                      className={`ml-3 ${
-                        msg.liked ? "text-red-500" : "text-gold"
-                      } hover:text-yellow-300`}
-                    >
-                      <Heart fill={msg.liked ? "currentColor" : "none"} />
-                    </button>
+                    <Heart className="text-gold" />
                   </div>
                 </div>
               )}

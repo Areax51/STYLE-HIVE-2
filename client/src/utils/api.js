@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // ✅ make sure this is defined in .env
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 API.interceptors.request.use((config) => {
@@ -18,7 +18,8 @@ export const addFavorite = (userId, productId) =>
   API.post(`/favorites/${userId}`, { productId });
 export const removeFavorite = (userId, productId) =>
   API.delete(`/favorites/${userId}/${productId}`);
-export const sendChatMessage = (message) => API.post("/chat", { message });
+export const sendChatMessage = (message) => API.post("/chat", { message }); // ✅ API instance already includes token via interceptor
+
 export const getChatHistory = () => API.get("/chat/history");
 export const uploadImageForAI = (formData) =>
   API.post("/chat/image", formData, {

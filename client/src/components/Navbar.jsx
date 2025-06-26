@@ -48,6 +48,9 @@ const Navbar = () => {
             >
               Register
             </Link>
+            <Link to="/stylist" className="text-gold hover:underline">
+              Try AI Stylist
+            </Link>
           </>
         ) : (
           <div className="relative">

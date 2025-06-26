@@ -32,7 +32,7 @@ ${productList}
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4",
       messages: [
         { role: "system", content: aiInstructions },
         { role: "user", content: message },
@@ -122,9 +122,10 @@ router.post(
         response.choices?.[0]?.message?.content || "No response from AI.";
       res.json({ response: aiReply });
     } catch (err) {
-      console.error("🛑 AI Image Styling Error:", err);
-      res.status(500).json({ msg: "AI image analysis failed" });
-    }
+  console.error("❌ AI Chat error:", err.response?.data || err.message);
+  res.status(500).json({ msg: "AI service error" });
+}
+
   }
 );
 

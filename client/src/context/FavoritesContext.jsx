@@ -1,3 +1,4 @@
+// src/context/FavoritesContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 
@@ -6,29 +7,27 @@ const FavoritesContext = createContext();
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
 
-  // ✅ Fetch all favorites on login
   useEffect(() => {
     const fetchFavorites = async () => {
-      if (user) {
+      if (user && token) {
         try {
-          const token = localStorage.getItem("token");
           const res = await axios.get(`/api/favorites/${user._id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setFavorites(res.data); // full product objects
         } catch (err) {
-          console.error("Failed to load favorites:", err);
+          console.error("❌ Fetch favorites failed:", err.message);
         }
       }
     };
     fetchFavorites();
-  }, [user]);
+  }, [user, token]);
 
   const addToFavorites = async (product) => {
-    if (!user) return;
+    if (!user || !token) return;
     try {
-      const token = localStorage.getItem("token");
       await axios.post(
         `/api/favorites/${user._id}`,
         { productId: product._id },
@@ -36,22 +35,23 @@ export const FavoritesProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setFavorites((prev) => [...prev, product]);
+      setFavorites((prev) =>
+        prev.some((p) => p._id === product._id) ? prev : [...prev, product]
+      );
     } catch (err) {
-      console.error("Failed to add favorite:", err);
+      console.error("❌ Add to favorites failed:", err.message);
     }
   };
 
   const removeFromFavorites = async (productId) => {
-    if (!user) return;
+    if (!user || !token) return;
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(`/api/favorites/${user._id}/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFavorites((prev) => prev.filter((p) => p._id !== productId));
     } catch (err) {
-      console.error("Failed to remove favorite:", err);
+      console.error("❌ Remove from favorites failed:", err.message);
     }
   };
 

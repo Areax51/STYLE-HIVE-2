@@ -1,3 +1,4 @@
+// src/pages/Favorites.jsx
 import React from "react";
 import { useFavorites } from "../context/FavoritesContext";
 

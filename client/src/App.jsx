@@ -7,7 +7,8 @@ import Saved from "./pages/Savedd";
 import Recommend from "./pages/Recommend";
 import Chat from "./pages/Chat";
 import Favorites from "./pages/Favorites";
-import ImageStylist from "./pages/ImageStylist"; // ✅ page import
+import ImageStylist from "./components/ImageStylist";
+
 import ChatBoxRealtime from "./components/ChatBoxRealtime";
 import Products from "./pages/Products";
 

@@ -10,9 +10,9 @@ dotenv.config();
 
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const upload = multer({ storage: multer.memoryStorage() }); // 🔄 for image upload
+const upload = multer({ storage: multer.memoryStorage() });
 
-// 🧠 Text Chat Route
+// 🧠 Text Chat with AI
 router.post("/", authMiddleware, async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ msg: "Message is required" });
@@ -23,40 +23,38 @@ router.post("/", authMiddleware, async (req, res) => {
       .map((p) => `${p.name} - $${p.price}`)
       .join("\n");
 
-    const aiInstructions = `
-You are StyleHive AI, a futuristic fashion stylist assistant.
-- Recommend outfit ideas.
-- Suggest products from this list when relevant:
+    const systemPrompt = `
+You are StyleHive AI, a futuristic fashion stylist.
+Recommend styles, give fashion advice, and suggest products from this list if relevant:
 ${productList}
-- Respond with confidence and flair.
+Keep it stylish and confident.
 `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
-        { role: "system", content: aiInstructions },
+        { role: "system", content: systemPrompt },
         { role: "user", content: message },
       ],
     });
 
     const reply = completion.choices[0].message.content;
 
-    const newChat = new Chat({
+    await Chat.create({
       userId: req.user.id,
       prompt: message,
       response: reply,
       timestamp: new Date(),
     });
-    await newChat.save();
 
     res.json({ reply });
   } catch (err) {
-    console.error("AI Chat error:", err.message);
+    console.error("AI Chat Error:", err.message);
     res.status(500).json({ msg: "AI service error" });
   }
 });
 
-// 📜 Chat History
+// 📜 Chat History (Latest 10)
 router.get("/history", authMiddleware, async (req, res) => {
   try {
     const history = await Chat.find({ userId: req.user.id })
@@ -68,7 +66,7 @@ router.get("/history", authMiddleware, async (req, res) => {
   }
 });
 
-// ❤️ Like / Unlike a Chat
+// 👍 Like / Unlike a Chat
 router.patch("/:id", authMiddleware, async (req, res) => {
   try {
     const chat = await Chat.findByIdAndUpdate(
@@ -79,12 +77,11 @@ router.patch("/:id", authMiddleware, async (req, res) => {
     if (!chat) return res.status(404).json({ msg: "Chat not found" });
     res.json(chat);
   } catch (err) {
-    console.error("Like update error:", err.message);
     res.status(500).json({ msg: "Failed to update like status" });
   }
 });
 
-// 🖼 Image Styling Route (GPT-4 Vision)
+// 🖼️ Image Styling with GPT-4 Vision
 router.post(
   "/image",
   authMiddleware,
@@ -93,10 +90,9 @@ router.post(
     if (!req.file) return res.status(400).json({ msg: "Image is required" });
 
     try {
-      const imageBuffer = req.file.buffer;
-      const base64Image = imageBuffer.toString("base64");
+      const base64Image = req.file.buffer.toString("base64");
 
-      const response = await openai.chat.completions.create({
+      const visionRes = await openai.chat.completions.create({
         model: "gpt-4-vision-preview",
         messages: [
           {
@@ -104,7 +100,7 @@ router.post(
             content: [
               {
                 type: "text",
-                text: "Describe this fashion look. Suggest the style, occasion, and related clothing items or accessories.",
+                text: "Describe this fashion look. Suggest the style, occasion, and matching outfit or accessory recommendations.",
               },
               {
                 type: "image_url",
@@ -118,14 +114,13 @@ router.post(
         max_tokens: 600,
       });
 
-      const aiReply =
-        response.choices?.[0]?.message?.content || "No response from AI.";
-      res.json({ response: aiReply });
+      const reply =
+        visionRes.choices?.[0]?.message?.content || "AI did not respond.";
+      res.json({ response: reply });
     } catch (err) {
-  console.error("❌ AI Chat error:", err.response?.data || err.message);
-  res.status(500).json({ msg: "AI service error" });
-}
-
+      console.error("AI Vision Error:", err.response?.data || err.message);
+      res.status(500).json({ msg: "AI service error" });
+    }
   }
 );
 

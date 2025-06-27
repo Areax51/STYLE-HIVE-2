@@ -1,15 +1,16 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import DropdownNav from "./DropdownNav";
-<DropdownNav />;
+
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [dropdown, setDropdown] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) setUser(JSON.parse(savedUser));
-  }, [window.location.pathname]); // <== Add this so it reacts on navigation
+  }, [window.location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -28,10 +29,16 @@ const Navbar = () => {
         <Link to="/products" className="hover:text-gold transition">
           Products
         </Link>
+
         {user && (
-          <Link to="/favorites" className="hover:text-gold transition">
-            Favorites
-          </Link>
+          <>
+            <Link to="/favorites" className="hover:text-gold transition">
+              Favorites
+            </Link>
+            <Link to="/stylist" className="hover:text-gold transition">
+              Try AI Stylist
+            </Link>
+          </>
         )}
 
         {!user ? (
@@ -47,9 +54,6 @@ const Navbar = () => {
               className="bg-gray-800 border border-gold px-4 py-2 rounded hover:bg-gold hover:text-black transition"
             >
               Register
-            </Link>
-            <Link to="/stylist" className="text-gold hover:underline">
-              Try AI Stylist
             </Link>
           </>
         ) : (

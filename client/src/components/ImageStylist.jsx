@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ImageStylist = () => {
@@ -7,6 +8,12 @@ const ImageStylist = () => {
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) navigate("/login");
+  }, []);
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -29,7 +36,7 @@ const ImageStylist = () => {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/chat/image`,
+        `${import.meta.env.VITE_API_URL}/chat/image`, // ✅ corrected endpoint
         formData,
         {
           headers: {
@@ -42,7 +49,7 @@ const ImageStylist = () => {
       setResponse(res.data.response);
     } catch (err) {
       console.error("Image styling error:", err.message);
-      setError("⚠️ AI could not process your request.");
+      setError("AI could not process your request.");
     } finally {
       setLoading(false);
     }

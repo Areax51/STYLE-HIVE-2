@@ -6,8 +6,13 @@ const FavoritesContext = createContext();
 
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(null);
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, [window.location.pathname]); // make sure context updates on nav change
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -24,13 +29,13 @@ export const FavoritesProvider = ({ children }) => {
     };
     fetchFavorites();
   }, [user, token]);
+
   const addToFavorites = async (product) => {
+    if (!user || !token) return;
     try {
       await axios.post(
         `/api/favorites/${user._id}`,
-        {
-          productId: product._id,
-        },
+        { productId: product._id },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -45,6 +50,7 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   const removeFromFavorites = async (productId) => {
+    if (!user || !token) return;
     try {
       await axios.delete(`/api/favorites/${user._id}/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },

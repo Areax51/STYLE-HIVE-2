@@ -1,555 +1,238 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Product from "./models/Product.js";
-import connectDB from "./config/db.js";
+import Product from "./models/Product.js"; // Ensure correct relative path
 
 dotenv.config();
-await connectDB();
 
-// Replace this with real fashion product data directly:
 const products = [
   {
-    name: "Sleek Midi Dress",
-    description: "A sleek midi dress perfect for modern fashion enthusiasts.",
-    price: 111.46,
+    name: "ASOS DESIGN Slim Fit Oxford Shirt",
+    description: "White slim-fit oxford shirt with button-down collar.",
+    price: 34.99,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-slim-fit-oxford-shirt-in-white/205341872-1-white.jpg",
+  },
+  {
+    name: "ASOS DESIGN Ultimate Slim Fit Long Sleeve Tee",
+    description: "White long-sleeve slim-fit T-shirt in cotton.",
+    price: 19.99,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-ultimate-slim-fit-t-shirt-with-long-sleeves-in-white/12451975-1-white.jpg",
+  },
+  {
+    name: "ASOS DESIGN Slim Sateen Short Sleeve Shirt",
+    description: "White slim-fit sateen short-sleeve shirt.",
+    price: 29.99,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-slim-sateen-short-sleeve-shirt-in-white/205399382-1-white.jpg",
+  },
+  {
+    name: "ASOS DESIGN Formal Poplin Slim Fit Shirt",
+    description: "White formal poplin slim fit shirt with spread collar.",
+    price: 29.99,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-formal-poplin-slim-fit-shirt-in-white/207562035-1-white.jpg",
+  },
+  {
+    name: "ASOS DESIGN Slim Fit Mesh Shirt",
+    description: "White sheer striped mesh shirt, slim fit.",
+    price: 39.99,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-slim-fit-sheer-striped-mesh-shirt/207544550-1-white.jpg",
+  },
+  {
+    name: "ASOS DESIGN Skinny Suit Blazer",
+    description: "Black skinny fit suit blazer with peak lapels.",
+    price: 89.99,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-skinny-fit-suit-blazer-in-black/12345678-1-black.jpg",
+  },
+  {
+    name: "ASOS DESIGN Leather Chelsea Boots",
+    description: "Black leather Chelsea boots with elastic sides.",
+    price: 120.0,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-leather-chelsea-boots/12345682-1-black.jpg",
+  },
+  {
+    name: "ASOS DESIGN Tapered Cargo Pants",
+    description: "Beige tapered cargo pants with elasticated cuffs.",
+    price: 52.0,
+    category: "Men",
+    image:
+      "https://images.asos-media.com/products/asos-design-tapered-cargo-pants/12345689-1-beige.jpg",
+  },
+  // Women’s items
+  {
+    name: "ASOS DESIGN Bodycon Midi Dress",
+    description: "Red bodycon midi dress with square neckline.",
+    price: 49.0,
     category: "Women",
     image:
-      "https://images.unsplash.com/photo-8017004357373?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455255",
-    updatedAt: "2025-06-26T01:03:28.455263",
+      "https://images.asos-media.com/products/asos-design-bodycon-midi-dress-in-red/12345681-1-red.jpg",
   },
   {
-    name: "Bold Necklace",
-    description: "A bold necklace perfect for modern fashion enthusiasts.",
-    price: 113.39,
-    category: "Accessories",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/2278/products/product-415.jpg",
-    createdAt: "2025-06-26T01:03:28.455265",
-    updatedAt: "2025-06-26T01:03:28.455267",
-  },
-  {
-    name: "Retro Crossbody Bag",
-    description:
-      "A retro crossbody bag perfect for modern fashion enthusiasts.",
-    price: 88.06,
-    category: "Accessories",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/3391/products/product-893.jpg",
-    createdAt: "2025-06-26T01:03:28.455269",
-    updatedAt: "2025-06-26T01:03:28.455270",
-  },
-  {
-    name: "Retro Crossbody Bag",
-    description:
-      "A retro crossbody bag perfect for modern fashion enthusiasts.",
-    price: 88.06,
-    category: "Accessories",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/3391/products/product-893.jpg",
-    createdAt: "2025-06-26T01:03:28.455269",
-    updatedAt: "2025-06-26T01:03:28.455270",
-  },
-  {
-    name: "Chic Cotton Shirt",
-    description: "A chic cotton shirt perfect for modern fashion enthusiasts.",
-    price: 100.94,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-6919991419872?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455272",
-    updatedAt: "2025-06-26T01:03:28.455274",
-  },
-  {
-    name: "Urban Wristwatch",
-    description: "A urban wristwatch perfect for modern fashion enthusiasts.",
-    price: 28.96,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-4603576178075?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455275",
-    updatedAt: "2025-06-26T01:03:28.455277",
-  },
-  {
-    name: "Classic Bucket Hat",
-    description: "A classic bucket hat perfect for modern fashion enthusiasts.",
-    price: 113.98,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-3827626926179?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455280",
-    updatedAt: "2025-06-26T01:03:28.455282",
-  },
-  {
-    name: "Elegant Denim Jeans",
-    description:
-      "A elegant denim jeans perfect for modern fashion enthusiasts.",
-    price: 115.24,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/9587/products/product-348.jpg",
-    createdAt: "2025-06-26T01:03:28.455284",
-    updatedAt: "2025-06-26T01:03:28.455286",
-  },
-  {
-    name: "Minimalist Crop Top",
-    description:
-      "A minimalist crop top perfect for modern fashion enthusiasts.",
-    price: 123.59,
+    name: "ASOS Curve Floral Wrap Dress",
+    description: "Floral wrap midi dress with flutter sleeves.",
+    price: 60.0,
     category: "Women",
     image:
-      "https://cdn.shopify.com/s/files/1/files/4035/products/product-363.jpg",
-    createdAt: "2025-06-26T01:03:28.455289",
-    updatedAt: "2025-06-26T01:03:28.455291",
+      "https://images.asos-media.com/products/asos-curve-floral-wrap-midi-dress/12345680-1-floral.jpg",
   },
   {
-    name: "Classic Blazer",
-    description: "A classic blazer perfect for modern fashion enthusiasts.",
-    price: 101.34,
+    name: "ASOS DESIGN Faux Leather Biker Jacket",
+    description: "Black faux leather biker jacket with zip details.",
+    price: 78.0,
     category: "Women",
     image:
-      "https://images.unsplash.com/photo-2230585069965?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455293",
-    updatedAt: "2025-06-26T01:03:28.455295",
+      "https://images.asos-media.com/products/asos-design-faux-leather-biker-jacket/12345679-1-black.jpg",
   },
   {
-    name: "Sleek Leather Jacket",
-    description:
-      "A sleek leather jacket perfect for modern fashion enthusiasts.",
-    price: 23.78,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/5177/products/product-615.jpg",
-    createdAt: "2025-06-26T01:03:28.455296",
-    updatedAt: "2025-06-26T01:03:28.455298",
-  },
-  {
-    name: "Retro Necklace",
-    description: "A retro necklace perfect for modern fashion enthusiasts.",
-    price: 119.71,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-2966419867516?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455300",
-    updatedAt: "2025-06-26T01:03:28.455302",
-  },
-  {
-    name: "Bold Leather Jacket",
-    description:
-      "A bold leather jacket perfect for modern fashion enthusiasts.",
-    price: 51.55,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-9524239182682?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455303",
-    updatedAt: "2025-06-26T01:03:28.455305",
-  },
-  {
-    name: "Sleek Slim-fit Pants",
-    description:
-      "A sleek slim-fit pants perfect for modern fashion enthusiasts.",
-    price: 32.33,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/1091/products/product-686.jpg",
-    createdAt: "2025-06-26T01:03:28.455307",
-    updatedAt: "2025-06-26T01:03:28.455308",
-  },
-  {
-    name: "Elegant Sunglasses",
-    description: "A elegant sunglasses perfect for modern fashion enthusiasts.",
-    price: 110.68,
-    category: "Accessories",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/4580/products/product-394.jpg",
-    createdAt: "2025-06-26T01:03:28.455310",
-    updatedAt: "2025-06-26T01:03:28.455312",
-  },
-  {
-    name: "Classic Tank Dress",
-    description: "A classic tank dress perfect for modern fashion enthusiasts.",
-    price: 143.76,
+    name: "ASOS DESIGN Wide Leg Trousers",
+    description: "Cream high-waisted wide-leg pleated trousers.",
+    price: 55.0,
     category: "Women",
     image:
-      "https://images.unsplash.com/photo-8902938573241?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455313",
-    updatedAt: "2025-06-26T01:03:28.455315",
+      "https://images.asos-media.com/products/asos-design-wide-leg-trousers/12345683-1-cream.jpg",
   },
   {
-    name: "Chic Cotton Shirt",
-    description: "A chic cotton shirt perfect for modern fashion enthusiasts.",
-    price: 138.33,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-4395341177807?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455316",
-    updatedAt: "2025-06-26T01:03:28.455318",
-  },
-  {
-    name: "Classic Bucket Hat",
-    description: "A classic bucket hat perfect for modern fashion enthusiasts.",
-    price: 97.56,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-5354939694999?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455320",
-    updatedAt: "2025-06-26T01:03:28.455322",
-  },
-  {
-    name: "Urban Necklace",
-    description: "A urban necklace perfect for modern fashion enthusiasts.",
-    price: 76.43,
-    category: "Accessories",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/5244/products/product-798.jpg",
-    createdAt: "2025-06-26T01:03:28.455323",
-    updatedAt: "2025-06-26T01:03:28.455325",
-  },
-  {
-    name: "Minimalist Sunglasses",
-    description:
-      "A minimalist sunglasses perfect for modern fashion enthusiasts.",
-    price: 80.35,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-6903568193803?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455327",
-    updatedAt: "2025-06-26T01:03:28.455328",
-  },
-  {
-    name: "Minimalist Bucket Hat",
-    description:
-      "A minimalist bucket hat perfect for modern fashion enthusiasts.",
-    price: 70.47,
-    category: "Accessories",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/5675/products/product-987.jpg",
-    createdAt: "2025-06-26T01:03:28.455330",
-    updatedAt: "2025-06-26T01:03:28.455332",
-  },
-  {
-    name: "Urban Denim Jeans",
-    description: "A urban denim jeans perfect for modern fashion enthusiasts.",
-    price: 115.72,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/4927/products/product-629.jpg",
-    createdAt: "2025-06-26T01:03:28.455333",
-    updatedAt: "2025-06-26T01:03:28.455335",
-  },
-  {
-    name: "Classic Sunglasses",
-    description: "A classic sunglasses perfect for modern fashion enthusiasts.",
-    price: 38.37,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-8246757014464?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455337",
-    updatedAt: "2025-06-26T01:03:28.455338",
-  },
-  {
-    name: "Urban Leather Jacket",
-    description:
-      "A urban leather jacket perfect for modern fashion enthusiasts.",
-    price: 25.18,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/8371/products/product-126.jpg",
-    createdAt: "2025-06-26T01:03:28.455340",
-    updatedAt: "2025-06-26T01:03:28.455342",
-  },
-  {
-    name: "Elegant Wristwatch",
-    description: "A elegant wristwatch perfect for modern fashion enthusiasts.",
-    price: 80.36,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-4957518122049?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455343",
-    updatedAt: "2025-06-26T01:03:28.455345",
-  },
-  {
-    name: "Retro Leather Jacket",
-    description:
-      "A retro leather jacket perfect for modern fashion enthusiasts.",
-    price: 97.09,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-9483744040781?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455347",
-    updatedAt: "2025-06-26T01:03:28.455348",
-  },
-  {
-    name: "Bold Slim-fit Pants",
-    description:
-      "A bold slim-fit pants perfect for modern fashion enthusiasts.",
-    price: 147.18,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-4843649802658?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455350",
-    updatedAt: "2025-06-26T01:03:28.455351",
-  },
-  {
-    name: "Minimalist Bucket Hat",
-    description:
-      "A minimalist bucket hat perfect for modern fashion enthusiasts.",
-    price: 117.75,
-    category: "Accessories",
-    image:
-      "https://images.unsplash.com/photo-8436652013165?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455353",
-    updatedAt: "2025-06-26T01:03:28.455355",
-  },
-  {
-    name: "Sleek Denim Jeans",
-    description: "A sleek denim jeans perfect for modern fashion enthusiasts.",
-    price: 33.8,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-2599627521781?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455356",
-    updatedAt: "2025-06-26T01:03:28.455358",
-  },
-  {
-    name: "Minimalist Slim-fit Pants",
-    description:
-      "A minimalist slim-fit pants perfect for modern fashion enthusiasts.",
-    price: 87.11,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/1218/products/product-221.jpg",
-    createdAt: "2025-06-26T01:03:28.455360",
-    updatedAt: "2025-06-26T01:03:28.455361",
-  },
-  {
-    name: "Retro Tank Dress",
-    description: "A retro tank dress perfect for modern fashion enthusiasts.",
-    price: 26.08,
+    name: "ASOS DESIGN Crop Top Racerback",
+    description: "Black racerback crop top.",
+    price: 25.0,
     category: "Women",
     image:
-      "https://images.unsplash.com/photo-6448698116982?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455363",
-    updatedAt: "2025-06-26T01:03:28.455365",
+      "https://images.asos-media.com/products/asos-design-racer-back-crop-top-in-black/12345684-1-black.jpg",
   },
   {
-    name: "Sleek Midi Dress",
-    description: "A sleek midi dress perfect for modern fashion enthusiasts.",
-    price: 37.22,
+    name: "ASOS DESIGN Faux Fur Trim Parka",
+    description: "Black parka with faux-fur trim hood.",
+    price: 112.0,
     category: "Women",
     image:
-      "https://cdn.shopify.com/s/files/1/files/9577/products/product-595.jpg",
-    createdAt: "2025-06-26T01:03:28.455366",
-    updatedAt: "2025-06-26T01:03:28.455368",
+      "https://images.asos-media.com/products/asos-design-faux-fur-trim-parka-coat/12345690-1-black.jpg",
   },
   {
-    name: "Retro Crop Top",
-    description: "A retro crop top perfect for modern fashion enthusiasts.",
-    price: 73.56,
+    name: "ASOS DESIGN Slingback Heels",
+    description: "Pink slingback heels with kitten heel.",
+    price: 45.0,
     category: "Women",
     image:
-      "https://cdn.shopify.com/s/files/1/files/7506/products/product-835.jpg",
-    createdAt: "2025-06-26T01:03:28.455370",
-    updatedAt: "2025-06-26T01:03:28.455371",
+      "https://images.asos-media.com/products/asos-design-kitten-heel-slingbacks/12345691-1-pink.jpg",
   },
+  // Accessories (10 items)
   {
-    name: "Minimalist Blazer",
-    description: "A minimalist blazer perfect for modern fashion enthusiasts.",
-    price: 72.66,
-    category: "Women",
-    image:
-      "https://images.unsplash.com/photo-5958594616458?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455373",
-    updatedAt: "2025-06-26T01:03:28.455374",
-  },
-  {
-    name: "Sleek Wrap Skirt",
-    description: "A sleek wrap skirt perfect for modern fashion enthusiasts.",
-    price: 49.27,
-    category: "Women",
-    image:
-      "https://images.unsplash.com/photo-2699115948107?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455376",
-    updatedAt: "2025-06-26T01:03:28.455378",
-  },
-  {
-    name: "Minimalist Midi Dress",
-    description:
-      "A minimalist midi dress perfect for modern fashion enthusiasts.",
-    price: 125.66,
-    category: "Women",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/6786/products/product-32.jpg",
-    createdAt: "2025-06-26T01:03:28.455380",
-    updatedAt: "2025-06-26T01:03:28.455382",
-  },
-  {
-    name: "Elegant Leather Jacket",
-    description:
-      "A elegant leather jacket perfect for modern fashion enthusiasts.",
-    price: 107.87,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-1142206831510?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455383",
-    updatedAt: "2025-06-26T01:03:28.455385",
-  },
-  {
-    name: "Urban Bucket Hat",
-    description: "A urban bucket hat perfect for modern fashion enthusiasts.",
-    price: 74.95,
+    name: "ASOS DESIGN Gold Hoop Earrings",
+    description: "Chunky textured gold hoop earrings.",
+    price: 12.99,
     category: "Accessories",
     image:
-      "https://images.unsplash.com/photo-7547356707561?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455387",
-    updatedAt: "2025-06-26T01:03:28.455388",
+      "https://images.asos-media.com/products/asos-design-textured-gold-hoop-earrings/12345685-1-gold.jpg",
   },
   {
-    name: "Chic Leather Jacket",
-    description:
-      "A chic leather jacket perfect for modern fashion enthusiasts.",
-    price: 80.58,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/1932/products/product-813.jpg",
-    createdAt: "2025-06-26T01:03:28.455390",
-    updatedAt: "2025-06-26T01:03:28.455392",
-  },
-  {
-    name: "Minimalist Sunglasses",
-    description:
-      "A minimalist sunglasses perfect for modern fashion enthusiasts.",
-    price: 106.12,
+    name: "ASOS DESIGN Mini Faux Leather Crossbody Bag",
+    description: "Black mini crossbody with chain strap.",
+    price: 38.0,
     category: "Accessories",
     image:
-      "https://images.unsplash.com/photo-7557064661459?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455393",
-    updatedAt: "2025-06-26T01:03:28.455395",
+      "https://images.asos-media.com/products/asos-design-mini-faux-leather-crossbody-bag/12345686-1-black.jpg",
   },
   {
-    name: "Bold Wristwatch",
-    description: "A bold wristwatch perfect for modern fashion enthusiasts.",
-    price: 139.51,
+    name: "ASOS DESIGN Stone Cotton Bucket Hat",
+    description: "Stone bucket hat with stitched brim.",
+    price: 16.0,
     category: "Accessories",
     image:
-      "https://cdn.shopify.com/s/files/1/files/1141/products/product-607.jpg",
-    createdAt: "2025-06-26T01:03:28.455397",
-    updatedAt: "2025-06-26T01:03:28.455398",
+      "https://images.asos-media.com/products/asos-design-bucket-hat-in-stone/12345687-1-stone.jpg",
   },
   {
-    name: "Bold Crop Top",
-    description: "A bold crop top perfect for modern fashion enthusiasts.",
-    price: 45.8,
-    category: "Women",
-    image:
-      "https://images.unsplash.com/photo-4095722352967?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455400",
-    updatedAt: "2025-06-26T01:03:28.455402",
-  },
-  {
-    name: "Minimalist Bucket Hat",
-    description:
-      "A minimalist bucket hat perfect for modern fashion enthusiasts.",
-    price: 90.19,
+    name: "ASOS DESIGN Mixed Metal Chunky Rings",
+    description: "Pack of chunky mixed-metal rings.",
+    price: 20.0,
     category: "Accessories",
     image:
-      "https://cdn.shopify.com/s/files/1/files/5885/products/product-65.jpg",
-    createdAt: "2025-06-26T01:03:28.455404",
-    updatedAt: "2025-06-26T01:03:28.455407",
+      "https://images.asos-media.com/products/asos-design-mixed-metal-chunky-ring-pack/12345688-1-mixedmetal.jpg",
   },
   {
-    name: "Elegant Slim-fit Pants",
-    description:
-      "A elegant slim-fit pants perfect for modern fashion enthusiasts.",
-    price: 70.27,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/6804/products/product-107.jpg",
-    createdAt: "2025-06-26T01:03:28.455410",
-    updatedAt: "2025-06-26T01:03:28.455414",
-  },
-  {
-    name: "Chic Cotton Shirt",
-    description: "A chic cotton shirt perfect for modern fashion enthusiasts.",
-    price: 70.58,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/8136/products/product-977.jpg",
-    createdAt: "2025-06-26T01:03:28.455417",
-    updatedAt: "2025-06-26T01:03:28.455420",
-  },
-  {
-    name: "Elegant Leather Jacket",
-    description:
-      "A elegant leather jacket perfect for modern fashion enthusiasts.",
-    price: 70.62,
-    category: "Men",
-    image:
-      "https://cdn.shopify.com/s/files/1/files/2124/products/product-82.jpg",
-    createdAt: "2025-06-26T01:03:28.455422",
-    updatedAt: "2025-06-26T01:03:28.455425",
-  },
-  {
-    name: "Classic Leather Jacket",
-    description:
-      "A classic leather jacket perfect for modern fashion enthusiasts.",
-    price: 36.41,
-    category: "Men",
-    image:
-      "https://images.unsplash.com/photo-8278615576280?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455428",
-    updatedAt: "2025-06-26T01:03:28.455431",
-  },
-  {
-    name: "Chic Sunglasses",
-    description: "A chic sunglasses perfect for modern fashion enthusiasts.",
-    price: 27.54,
+    name: "ASOS DESIGN Sunglasses Tinted Lenses",
+    description: "Square-frame sunglasses with brown lenses.",
+    price: 18.5,
     category: "Accessories",
     image:
-      "https://images.unsplash.com/photo-3578247250867?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455434",
-    updatedAt: "2025-06-26T01:03:28.455437",
+      "https://images.asos-media.com/products/asos-design-square-frame-sunglasses/12345692-1-brown.jpg",
   },
   {
-    name: "Elegant Crossbody Bag",
-    description:
-      "A elegant crossbody bag perfect for modern fashion enthusiasts.",
-    price: 65.02,
+    name: "ASOS DESIGN Leather Belt with Buckle",
+    description: "Black leather belt with silver buckle.",
+    price: 15.0,
     category: "Accessories",
     image:
-      "https://images.unsplash.com/photo-8122740965036?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455440",
-    updatedAt: "2025-06-26T01:03:28.455444",
+      "https://images.asos-media.com/products/asos-design-leather-belt-with-buckle/12345693-1-black.jpg",
   },
   {
-    name: "Urban Denim Jeans",
-    description: "A urban denim jeans perfect for modern fashion enthusiasts.",
-    price: 83.13,
-    category: "Men",
+    name: "ASOS DESIGN Scarf Wrap",
+    description: "Floral print oversized scarf.",
+    price: 22.0,
+    category: "Accessories",
     image:
-      "https://images.unsplash.com/photo-8884427002225?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455446",
-    updatedAt: "2025-06-26T01:03:28.455447",
+      "https://images.asos-media.com/products/asos-design-floral-print-scarf/12345694-1-floral.jpg",
   },
   {
-    name: "Sleek Wrap Skirt",
-    description: "A sleek wrap skirt perfect for modern fashion enthusiasts.",
-    price: 136.28,
-    category: "Women",
+    name: "ASOS DESIGN Baseball Cap",
+    description: "Black cotton baseball cap with logo.",
+    price: 12.0,
+    category: "Accessories",
     image:
-      "https://images.unsplash.com/photo-1718224274492?fit=crop&w=800&q=80",
-    createdAt: "2025-06-26T01:03:28.455449",
-    updatedAt: "2025-06-26T01:03:28.455451",
+      "https://images.asos-media.com/products/asos-design-cotton-baseball-cap/12345695-1-black.jpg",
   },
-  // 👇 Keep adding the rest of the product objects here, as they were
+  {
+    name: "ASOS DESIGN Silk Headband",
+    description: "Colorful silk-print headband.",
+    price: 14.0,
+    category: "Accessories",
+    image:
+      "https://images.asos-media.com/products/asos-design-silk-print-headband/12345696-1-multi.jpg",
+  },
+  {
+    name: "ASOS DESIGN Leather Wallet",
+    description: "Black faux leather bifold wallet.",
+    price: 28.0,
+    category: "Accessories",
+    image:
+      "https://images.asos-media.com/products/asos-design-faux-leather-wallet/12345697-1-black.jpg",
+  },
 ];
 
-try {
-  await Product.deleteMany();
-  await Product.insertMany(products);
-  console.log("✅ Database seeded with fresh products!");
-  process.exit();
-} catch (err) {
-  console.error("❌ Seed error:", err);
-  process.exit(1);
+// Add 27 more varied items to reach 50...
+for (let i = 0; products.length < 50; i++) {
+  products.push({
+    name: `ASOS DESIGN Alternate Item ${i + 1}`,
+    description: `Versatile ASOS product ${i + 1} for style.`,
+    price: (30 + i).toFixed(2),
+    category: i % 3 === 0 ? "Men" : i % 3 === 1 ? "Women" : "Accessories",
+    image: `https://images.asos-media.com/products/asos-design-item-placeholder/${
+      140000000 + i
+    }-1.jpg`,
+  });
 }
+
+async function seed() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    await Product.deleteMany();
+    await Product.insertMany(products);
+    console.log("✅ Database seeded with 50 ASOS-style products");
+    process.exit();
+  } catch (err) {
+    console.error("❌ Seeding failed:", err);
+    process.exit(1);
+  }
+}
+
+seed();

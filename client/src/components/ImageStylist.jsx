@@ -13,7 +13,7 @@ const ImageStylist = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, []);
+  }, [navigate]);
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -36,7 +36,7 @@ const ImageStylist = () => {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/chat/image`, // ✅ corrected endpoint
+        `${import.meta.env.VITE_API_URL}/chat/image`,
         formData,
         {
           headers: {
@@ -48,44 +48,65 @@ const ImageStylist = () => {
 
       setResponse(res.data.response);
     } catch (err) {
-      console.error("Image styling error:", err.message);
-      setError("AI could not process your request.");
+      console.error("Image styling error:", err.response?.data || err.message);
+      setError("⚠️ AI could not process your request.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center">
       <h1 className="text-3xl font-bold text-gold mb-6">AI Style Feedback</h1>
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImage}
-        className="mb-4 text-white"
-      />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          sendToAI();
+        }}
+        className="w-full max-w-md"
+      >
+        <div className="mb-4">
+          <label
+            htmlFor="image-upload"
+            className="block mb-2 text-sm text-gray-300"
+          >
+            Upload your outfit image
+          </label>
+          <input
+            id="image-upload"
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={handleImage}
+            className="w-full text-white bg-gray-800 border border-gray-700 rounded-lg file:bg-gold file:text-black file:border-none file:px-4 file:py-2"
+            required
+          />
+        </div>
 
-      {preview && (
-        <img
-          src={preview}
-          alt="Preview"
-          className="w-full max-w-md rounded-lg border border-gold mb-4"
-        />
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full rounded-lg border border-gold mb-4"
+          />
+        )}
+
+        <button
+          type="submit"
+          disabled={loading || !image}
+          className="w-full bg-gold text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 transition"
+        >
+          {loading ? "Analyzing..." : "Get Style Advice"}
+        </button>
+      </form>
+
+      {error && (
+        <p className="text-red-500 mt-4 font-medium text-center">{error}</p>
       )}
 
-      <button
-        onClick={sendToAI}
-        disabled={loading || !image}
-        className="bg-gold text-black px-6 py-3 font-bold rounded hover:bg-yellow-400 transition"
-      >
-        {loading ? "Analyzing..." : "Get Style Advice"}
-      </button>
-
-      {error && <p className="text-red-500 mt-4 font-medium">{error}</p>}
-
       {response && (
-        <div className="mt-6 bg-white/10 p-4 rounded-lg border border-gold">
+        <div className="mt-6 bg-white/10 p-4 rounded-lg border border-gold max-w-md">
           <h2 className="text-xl font-semibold text-gold mb-2">
             StyleHive AI says:
           </h2>

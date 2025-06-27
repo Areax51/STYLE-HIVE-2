@@ -5,10 +5,11 @@ import { loginUser } from "../utils/api";
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError(""); // Clear error on change
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -20,7 +21,7 @@ const Login = () => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // 🚨 Force full reload so Navbar re-checks localStorage
+      // Reload so Navbar updates
       window.location.href = "/";
     } catch (err) {
       setError(err.response?.data?.msg || "Login failed");
@@ -40,10 +41,14 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-1 text-sm text-gray-300">Email</label>
+            <label htmlFor="email" className="block mb-1 text-sm text-gray-300">
+              Email
+            </label>
             <input
+              id="email"
               type="email"
               name="email"
+              autoComplete="email"
               value={form.email}
               onChange={handleChange}
               required
@@ -51,10 +56,17 @@ const Login = () => {
             />
           </div>
           <div>
-            <label className="block mb-1 text-sm text-gray-300">Password</label>
+            <label
+              htmlFor="password"
+              className="block mb-1 text-sm text-gray-300"
+            >
+              Password
+            </label>
             <input
+              id="password"
               type="password"
               name="password"
+              autoComplete="current-password"
               value={form.password}
               onChange={handleChange}
               required

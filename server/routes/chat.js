@@ -12,7 +12,7 @@ const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 🧠 Text Chat with AI
+// 🧠 Text Chat with AI + Auto Mood Tags
 router.post("/", authMiddleware, async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ msg: "Message is required" });
@@ -25,9 +25,9 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const systemPrompt = `
 You are StyleHive AI, a futuristic fashion stylist.
-Recommend styles, give fashion advice, and suggest products from this list if relevant:
+Recommend outfits, give confident fashion advice, and use these products if helpful:
 ${productList}
-Keep it stylish and confident.
+Be bold, expressive, and style-forward.
 `;
 
     const completion = await openai.chat.completions.create({
@@ -40,48 +40,46 @@ Keep it stylish and confident.
 
     const reply = completion.choices[0].message.content;
 
-    await Chat.create({
+    // 🏷️ Mood Tagging
+    const tagPrompt = `
+Given this AI fashion response:
+"${reply}"
+
+Extract 1–3 lowercase tags that describe the fashion style or theme.
+Examples: ["streetwear", "elegant", "casual", "vintage", "bold"]
+Respond ONLY with a JSON array of strings.
+`;
+
+    const tagCompletion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: "Extract mood/style tags as JSON array." },
+        { role: "user", content: tagPrompt },
+      ],
+    });
+
+    let tags = [];
+    try {
+      tags = JSON.parse(tagCompletion.choices[0].message.content);
+    } catch {
+      tags = [];
+    }
+
+    const newChat = await Chat.create({
       userId: req.user.id,
       prompt: message,
       response: reply,
-      timestamp: new Date(),
+      tags,
     });
 
-    res.json({ reply });
+    res.json({ reply, tags, chatId: newChat._id });
   } catch (err) {
     console.error("AI Chat Error:", err.message);
     res.status(500).json({ msg: "AI service error" });
   }
 });
 
-// 📜 Chat History (Latest 10)
-router.get("/history", authMiddleware, async (req, res) => {
-  try {
-    const history = await Chat.find({ userId: req.user.id })
-      .sort({ timestamp: -1 })
-      .limit(10);
-    res.json(history);
-  } catch (err) {
-    res.status(500).json({ msg: "Failed to fetch chat history" });
-  }
-});
-
-// 👍 Like / Unlike a Chat
-router.patch("/:id", authMiddleware, async (req, res) => {
-  try {
-    const chat = await Chat.findByIdAndUpdate(
-      req.params.id,
-      { liked: req.body.liked },
-      { new: true }
-    );
-    if (!chat) return res.status(404).json({ msg: "Chat not found" });
-    res.json(chat);
-  } catch (err) {
-    res.status(500).json({ msg: "Failed to update like status" });
-  }
-});
-
-// 🖼️ Image Styling with GPT-4 Vision
+// 🖼️ GPT-4 Vision Image Upload
 router.post(
   "/image",
   authMiddleware,
@@ -100,7 +98,9 @@ router.post(
             content: [
               {
                 type: "text",
-                text: "Describe this fashion look. Suggest the style, occasion, and matching outfit or accessory recommendations.",
+                text: `You're StyleHive AI. 
+Describe this outfit and suggest matching fashion items (top, bottom, shoes, accessories).
+Include a brief summary of the style and ideal occasion.`,
               },
               {
                 type: "image_url",
@@ -111,7 +111,7 @@ router.post(
             ],
           },
         ],
-        max_tokens: 600,
+        max_tokens: 700,
       });
 
       const reply =
@@ -123,5 +123,32 @@ router.post(
     }
   }
 );
+
+// 📜 Get last 10 chats
+router.get("/history", authMiddleware, async (req, res) => {
+  try {
+    const history = await Chat.find({ userId: req.user.id })
+      .sort({ timestamp: -1 })
+      .limit(10);
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to fetch chat history" });
+  }
+});
+
+// ❤️ Like/Unlike a chat
+router.patch("/:id", authMiddleware, async (req, res) => {
+  try {
+    const chat = await Chat.findByIdAndUpdate(
+      req.params.id,
+      { liked: req.body.liked },
+      { new: true }
+    );
+    if (!chat) return res.status(404).json({ msg: "Chat not found" });
+    res.json(chat);
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to update like status" });
+  }
+});
 
 export default router;

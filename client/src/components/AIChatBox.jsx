@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import TypingDots from "./TypingDots";
-import { Heart } from "lucide-react";
+import { Heart, Tag } from "lucide-react";
 
-// ✅ Use deployed WebSocket URL
 const socket = io(import.meta.env.VITE_SOCKET_URL, {
   transports: ["websocket"],
 });
@@ -16,6 +15,7 @@ const AIChatBox = () => {
   const [currentStream, setCurrentStream] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -26,9 +26,7 @@ const AIChatBox = () => {
       try {
         const [chatRes, productRes] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL}/chat/history`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }),
           axios.get(`${import.meta.env.VITE_API_URL}/products`),
         ]);
@@ -39,22 +37,22 @@ const AIChatBox = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     socket.on("aiReplyChunk", (chunk) => {
       setCurrentStream((prev) => prev + chunk);
     });
 
-    socket.on("aiReplyComplete", async (fullReply) => {
+    socket.on("aiReplyComplete", (fullReply) => {
       setLoading(false);
       const lastUserMsg = messages[messages.length - 1];
-
       const newChat = {
         ...lastUserMsg,
         response: fullReply,
+        liked: false,
+        tags: [], // will be updated later if needed
       };
-
       setMessages((prev) => [...prev.slice(0, -1), newChat]);
       setCurrentStream("");
     });
@@ -74,8 +72,7 @@ const AIChatBox = () => {
 
   const sendMessage = () => {
     if (!input.trim()) return;
-
-    const newMsg = { prompt: input, response: null };
+    const newMsg = { prompt: input, response: null, liked: false };
     setMessages((prev) => [...prev, newMsg]);
     setInput("");
     setCurrentStream("");
@@ -83,8 +80,25 @@ const AIChatBox = () => {
 
     socket.emit("userMessage", {
       message: input,
-      token: localStorage.getItem("token"),
+      token,
     });
+  };
+
+  const toggleLike = async (chatId, liked) => {
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/chat/${chatId}`,
+        { liked: !liked },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === chatId ? { ...msg, liked: !liked } : msg
+        )
+      );
+    } catch (err) {
+      console.error("Failed to like chat", err.message);
+    }
   };
 
   const getProductFromResponse = (text) => {
@@ -106,10 +120,27 @@ const AIChatBox = () => {
               </div>
               {msg.response && (
                 <div className="bg-white/10 p-4 rounded-xl border border-gold">
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start gap-4">
                     <div className="text-white space-y-2 flex-1">
                       <p className="text-gold font-bold">StyleHive AI:</p>
                       <p>{msg.response}</p>
+
+                      {/* 🏷️ Tags */}
+                      {msg.tags && msg.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {msg.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2 py-1 bg-yellow-600/20 text-yellow-300 text-xs font-semibold rounded-full"
+                            >
+                              <Tag size={12} className="mr-1" />
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 🛍️ Product Preview */}
                       {product && (
                         <div className="mt-3 border border-gold rounded-xl overflow-hidden flex flex-col sm:flex-row">
                           <img
@@ -132,13 +163,23 @@ const AIChatBox = () => {
                         </div>
                       )}
                     </div>
-                    <Heart className="text-gold" />
+
+                    {/* ❤️ Like */}
+                    {msg._id && (
+                      <Heart
+                        className={`cursor-pointer text-gold hover:scale-110 transition ${
+                          msg.liked ? "fill-gold" : ""
+                        }`}
+                        onClick={() => toggleLike(msg._id, msg.liked)}
+                      />
+                    )}
                   </div>
                 </div>
               )}
             </div>
           );
         })}
+
         {loading && (
           <div className="bg-white/10 p-4 rounded-xl border border-gold">
             <p className="text-gold font-bold">StyleHive AI:</p>

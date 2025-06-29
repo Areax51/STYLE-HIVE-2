@@ -11,7 +11,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
-import favoritesRoutes from "./routes/favorites.js";
+import favoritesRoutes from "./routes/favorites.routes.js"; // ✅ Ensure correct filename
 
 // Models
 import Product from "./models/Product.js";
@@ -26,10 +26,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "https://style-hive-2.vercel.app", // ✅ frontend
-      "http://localhost:5173", // ✅ for local dev
-    ],
+    origin: ["https://style-hive-2.vercel.app", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -37,13 +34,13 @@ app.use(
 // ✅ API Endpoints
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/chat", chatRoutes); // includes /chat/image
-app.use("/api/favorites", favoritesRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/favorites", favoritesRoutes); // ✅ Favorites route properly hooked
 
-// ✅ Create HTTP server for WebSocket
+// ✅ HTTP Server
 const server = http.createServer(app);
 
-// ✅ Setup WebSocket with Socket.io
+// ✅ Socket.io Setup
 const io = new Server(server, {
   cors: {
     origin: ["https://style-hive-2.vercel.app", "http://localhost:5173"],
@@ -51,10 +48,10 @@ const io = new Server(server, {
   },
 });
 
-// ✅ OpenAI Client
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // ✅ FIXED: Use correct env key
+// ✅ OpenAI Instance
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// ✅ WebSocket AI Stream Handler
+// ✅ AI Stream Socket Handler
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
@@ -102,7 +99,6 @@ ${productList}
         socket.emit("aiReplyChunk", text);
       }
 
-      // ✅ Save to DB
       await new Chat({
         userId,
         prompt: message,
@@ -111,7 +107,7 @@ ${productList}
 
       socket.emit("aiReplyComplete", fullReply);
     } catch (err) {
-      console.error("🛑 Streaming error:", err.message);
+      console.error("🛑 AI Streaming error:", err.message);
       socket.emit("aiReplyError", "AI error occurred");
     }
   });

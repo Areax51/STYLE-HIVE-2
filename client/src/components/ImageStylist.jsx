@@ -18,6 +18,11 @@ const ImageStylist = () => {
   const handleImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload a valid image.");
+      return;
+    }
+
     setImage(file);
     setPreview(URL.createObjectURL(file));
     setResponse("");
@@ -49,7 +54,7 @@ const ImageStylist = () => {
       setResponse(res.data.response);
     } catch (err) {
       console.error("Image styling error:", err.response?.data || err.message);
-      setError("⚠️ AI could not process your request.");
+      setError("⚠️ AI could not process your image. Try another one.");
     } finally {
       setLoading(false);
     }
@@ -57,16 +62,18 @@ const ImageStylist = () => {
 
   return (
     <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center">
-      <h1 className="text-3xl font-bold text-gold mb-6">AI Style Feedback</h1>
+      <h1 className="text-3xl font-bold text-gold mb-6 text-center">
+        AI Style Feedback
+      </h1>
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
           sendToAI();
         }}
-        className="w-full max-w-md"
+        className="w-full max-w-md space-y-4"
       >
-        <div className="mb-4">
+        <div>
           <label
             htmlFor="image-upload"
             className="block mb-2 text-sm text-gray-300"
@@ -88,14 +95,14 @@ const ImageStylist = () => {
           <img
             src={preview}
             alt="Preview"
-            className="w-full rounded-lg border border-gold mb-4"
+            className="w-full rounded-lg border border-gold"
           />
         )}
 
         <button
           type="submit"
           disabled={loading || !image}
-          className="w-full bg-gold text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 transition"
+          className="w-full bg-gold text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 transition disabled:opacity-50"
         >
           {loading ? "Analyzing..." : "Get Style Advice"}
         </button>
@@ -106,11 +113,13 @@ const ImageStylist = () => {
       )}
 
       {response && (
-        <div className="mt-6 bg-white/10 p-4 rounded-lg border border-gold max-w-md">
+        <div className="mt-6 bg-white/10 p-4 rounded-lg border border-gold max-w-md w-full">
           <h2 className="text-xl font-semibold text-gold mb-2">
             StyleHive AI says:
           </h2>
-          <p>{response}</p>
+          <p className="text-sm leading-relaxed whitespace-pre-line">
+            {response}
+          </p>
         </div>
       )}
     </div>

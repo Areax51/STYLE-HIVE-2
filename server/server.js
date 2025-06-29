@@ -11,7 +11,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
-import favoritesRoutes from "./routes/favorites.routes.js"; // ✅ Ensure correct filename
+import favoritesRoutes from "./routes/favorites.js"; // ✅ Ensure correct filename
 
 // Models
 import Product from "./models/Product.js";

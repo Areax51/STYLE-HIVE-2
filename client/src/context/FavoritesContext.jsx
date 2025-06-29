@@ -1,6 +1,6 @@
 // src/context/FavoritesContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import { getFavorites, addFavorite, removeFavorite } from "../api"; // ✅ use your new api.js wrapper
+import { getFavorites, addFavorite, removeFavorite } from "../utils/api"; // ✅ use your new api.js wrapper
 
 const FavoritesContext = createContext();
 

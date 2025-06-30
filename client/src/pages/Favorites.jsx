@@ -1,42 +1,54 @@
-// src/pages/Favorites.jsx
-import React from "react";
-import { useFavorites } from "../context/FavoritesContext";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import ProductCard from "../components/ProductCard";
 
 const Favorites = () => {
-  const { favorites, removeFromFavorites } = useFavorites();
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("User not authenticated.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await axios.get("/api/favorites", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setFavorites(res.data);
+      } catch (err) {
+        console.error("❌ Failed to load favorites:", err.message);
+        setError("Could not load favorites.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFavorites();
+  }, []);
+
+  if (loading)
+    return <div className="text-center mt-10 text-white">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-10">
-      <h1 className="text-3xl font-bold text-gold mb-6 text-center">
-        Saved Favorites
-      </h1>
+    <div className="min-h-screen bg-gray-950 text-white px-6 py-10">
+      <h1 className="text-3xl font-bold text-gold mb-6">Your Favorites</h1>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
       {favorites.length === 0 ? (
-        <p className="text-center text-gray-400">
-          You haven’t saved anything yet.
-        </p>
+        <p className="text-gray-400">No favorite products saved yet.</p>
       ) : (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {favorites.map((product) => (
-            <div key={product._id} className="bg-gray-800 p-4 rounded-xl">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover rounded-lg mb-3"
-              />
-              <h2 className="text-xl font-semibold text-gold">
-                {product.name}
-              </h2>
-              <p className="text-sm text-gray-300 mb-2">
-                {product.description}
-              </p>
-              <p className="text-lg font-bold">${product.price}</p>
-              <button
-                onClick={() => removeFromFavorites(product._id)}
-                className="mt-2 w-full bg-red-600 text-white rounded-lg py-1 hover:bg-red-500"
-              >
-                Remove
-              </button>
-            </div>
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       )}

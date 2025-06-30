@@ -11,7 +11,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
-import favoritesRoutes from "./routes/favorites.js"; // ✅ Ensure correct filename
+import favoritesRoutes from "./routes/favorites.js";
 
 // Models
 import Product from "./models/Product.js";
@@ -35,7 +35,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/favorites", favoritesRoutes); // ✅ Favorites route properly hooked
+app.use("/api/favorites", favoritesRoutes);
 
 // ✅ HTTP Server
 const server = http.createServer(app);
@@ -51,7 +51,7 @@ const io = new Server(server, {
 // ✅ OpenAI Instance
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// ✅ AI Stream Socket Handler
+// ✅ AI Streaming Socket
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
@@ -107,7 +107,7 @@ ${productList}
 
       socket.emit("aiReplyComplete", fullReply);
     } catch (err) {
-      console.error("🛑 AI Streaming error:", err.message);
+      console.error("🛑 AI error:", err.message);
       socket.emit("aiReplyError", "AI error occurred");
     }
   });
@@ -116,5 +116,5 @@ ${productList}
 // ✅ Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`🚀 Server live at http://localhost:${PORT}`)
 );

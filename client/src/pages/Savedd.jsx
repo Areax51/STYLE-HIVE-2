@@ -9,13 +9,7 @@ const Saved = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          "http://localhost:5000/api/users/favorites",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await axios.get("/users/favorites");
         setFavorites(res.data.favorites);
       } catch (error) {
         console.error("Failed to load favorites", error);
@@ -27,10 +21,7 @@ const Saved = () => {
 
   const removeFromFavorites = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/users/favorites/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(`/users/favorites/${id}`);
       setFavorites((prev) => prev.filter((item) => item._id !== id));
     } catch (error) {
       console.error("Error removing item", error);

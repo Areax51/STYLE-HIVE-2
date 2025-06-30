@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "../utils/axios"; // Use your axios wrapper
+import axios from "../utils/axios"; // ✅ uses correct baseURL + headers
 import ProductCard from "../components/ProductCard";
 
 const ProductListPage = () => {
@@ -10,11 +10,11 @@ const ProductListPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
+        const res = await axios.get("/products"); // ✅ Clean path
         setProducts(res.data);
       } catch (err) {
+        console.error("❌ Product fetch error:", err);
         setError("Failed to fetch products.");
-        console.error("Product fetch error:", err);
       } finally {
         setLoading(false);
       }

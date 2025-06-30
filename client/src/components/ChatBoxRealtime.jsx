@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import axios from "../utils/axios"; // Use your axios wrapper
+import axios from "../utils/axios";
 
-const socket = io("http://localhost:5000"); // Replace with your live server URL for deployment
+const socket = io("https://style-hive-2.onrender.com"); // ✅ Replace localhost for deployment
 
 const ChatBoxRealtime = () => {
   const [input, setInput] = useState("");
@@ -13,10 +13,9 @@ const ChatBoxRealtime = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Fetch products once
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("/api/products");
+        const res = await axios.get("/products"); // ✅ No `/api`
         setProducts(res.data);
       } catch (err) {
         console.error("Product fetch error:", err);
@@ -40,17 +39,8 @@ const ChatBoxRealtime = () => {
       setInput("");
       setMatchedProducts([]);
 
-      // Save to DB
       try {
-        await axios.post(
-          "/api/chat",
-          { message: input, response: fullReply },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        await axios.post("/chat", { message: input, response: fullReply }); // ✅ No manual header
       } catch (err) {
         console.error("Chat save error:", err);
       }

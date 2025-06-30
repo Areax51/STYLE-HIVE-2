@@ -1,19 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu } from "@headlessui/react";
 import { ChevronDownIcon } from "lucide-react";
 
 const DropdownNav = () => {
-  const [user] = useState(JSON.parse(localStorage.getItem("user")));
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("user");
+    if (saved) setUser(JSON.parse(saved));
+  }, []);
+
+  if (!user) return null;
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
-
-  if (!user) return null;
 
   return (
     <div className="relative inline-block text-left">
@@ -22,6 +27,7 @@ const DropdownNav = () => {
           <span className="mr-2">{user.username || "User"}</span>
           <ChevronDownIcon className="w-4 h-4" />
         </Menu.Button>
+
         <Menu.Items className="absolute right-0 mt-2 w-40 origin-top-right bg-gray-900 border border-gray-700 divide-y divide-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
           <div className="px-1 py-1">
             <Menu.Item>
@@ -41,7 +47,7 @@ const DropdownNav = () => {
                 <button
                   onClick={handleLogout}
                   className={`${
-                    active ? "bg-red-600 text-white" : "text-red-400"
+                    active ? "bg-gray-700 text-white" : "text-gray-300"
                   } group flex w-full items-center rounded-md px-4 py-2 text-sm`}
                 >
                   Logout

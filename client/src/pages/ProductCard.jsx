@@ -1,25 +1,54 @@
+// src/components/ProductCard.jsx
+import React, { useContext } from "react";
+import axios from "axios";
+import { AuthContext } from "../contexts/AuthContext";
+
 const ProductCard = ({ product }) => {
+  const { token } = useContext(AuthContext);
+
+  const handleAddToFavorites = async () => {
+    try {
+      const res = await axios.post(
+        "/api/favorites",
+        { productId: product._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("✅ Added to favorites!");
+    } catch (err) {
+      if (err.response?.data?.msg === "Already in favorites") {
+        alert("⚠️ Already in favorites.");
+      } else {
+        console.error("❌ Add to favorites failed:", err);
+        alert("Failed to add to favorites.");
+      }
+    }
+  };
+
   return (
-    <div className="bg-black text-gold border border-gold rounded-2xl shadow-md p-4 hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+    <div className="bg-white text-black rounded-xl shadow-md overflow-hidden">
       <img
         src={product.image}
         alt={product.name}
-        className="w-full h-48 object-cover rounded-xl mb-4 border border-gold"
+        className="h-64 w-full object-cover"
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = "/fallback.jpg"; // Fallback image in public folder
+        }}
       />
-
-      <div className="flex-1">
-        <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
-        <p className="text-sm text-gray-400 mb-3">{product.description}</p>
-      </div>
-
-      <div className="flex items-center justify-between mt-2">
-        <span className="text-lg font-bold">{product.price} USD</span>
-        {/* Optional Add-ons below */}
-        {/* 
-        <button className="text-xs bg-gold text-black px-3 py-1 rounded hover:bg-yellow-400">
-          Try in AI
-        </button> 
-        */}
+      <div className="p-3">
+        <h2 className="font-bold text-lg">{product.name}</h2>
+        <p className="text-sm text-gray-600">{product.description}</p>
+        <p className="font-semibold mt-1">${product.price}</p>
+        <button
+          onClick={handleAddToFavorites}
+          className="mt-2 px-3 py-1 bg-black text-white rounded hover:bg-gray-800 transition"
+        >
+          Add to Favorites
+        </button>
       </div>
     </div>
   );

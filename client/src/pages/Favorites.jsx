@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "../utils/axios"; // Use your axios wrapper
+import axios from "../utils/axios"; // ✅ axios wrapper already includes baseURL + token
 import ProductCard from "../components/ProductCard";
 
 const Favorites = () => {
@@ -9,22 +9,11 @@ const Favorites = () => {
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("User not authenticated.");
-        setLoading(false);
-        return;
-      }
-
       try {
-        const res = await axios.get("/api/favorites", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get("/favorites"); // ✅ No /api prefix
         setFavorites(res.data);
       } catch (err) {
-        console.error("❌ Failed to load favorites:", err.message);
+        console.error("❌ Failed to load favorites:", err);
         setError("Could not load favorites.");
       } finally {
         setLoading(false);

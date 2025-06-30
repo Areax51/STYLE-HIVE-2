@@ -10,12 +10,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchLikedChats = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/chat/history`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await axios.get("/chat/history"); // ✅ simplified
         const liked = res.data.filter((chat) => chat.liked);
         setLikedChats(liked);
       } catch (err) {
@@ -24,7 +19,7 @@ const Profile = () => {
     };
 
     fetchLikedChats();
-  }, [token]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white p-6">

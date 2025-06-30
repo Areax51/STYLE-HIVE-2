@@ -15,7 +15,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`);
+        const res = await axios.get("/products"); // ✅ FIXED
         if (Array.isArray(res.data)) {
           setProducts(res.data);
         } else {

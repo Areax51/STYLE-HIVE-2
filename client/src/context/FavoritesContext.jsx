@@ -23,10 +23,18 @@ export const FavoritesProvider = ({ children }) => {
   }, [token]);
 
   const addToFavorites = async (product) => {
-    if (!token) return;
     try {
-      const res = await addFavorite(product._id);
-      setFavorites((prev) => [...prev, res.data]); // Add full product
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        "/api/favorites",
+        { productId: product._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setFavorites((prev) => [...prev, res.data]);
     } catch (err) {
       console.error(
         "Add to favorites failed:",

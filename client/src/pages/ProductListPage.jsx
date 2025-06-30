@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../utils/axios"; // Use your axios wrapper
 import ProductCard from "../components/ProductCard";
 
 const ProductListPage = () => {

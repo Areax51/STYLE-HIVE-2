@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react";
+import axios from "../utils/axios"; // Use your axios wrapper
 
 const LoginForm = () => {
-  const [user, setUser] = useState({ email: '', password: '' });
-  const [message, setMessage] = useState('');
+  const [user, setUser] = useState({ email: "", password: "" });
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -11,18 +11,22 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
+    setMessage("");
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', user, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        user,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      localStorage.setItem('token', res.data.token);
-      setMessage('✅ Logged in successfully');
+      localStorage.setItem("token", res.data.token);
+      setMessage("✅ Logged in successfully");
       // Redirect or navigate to another page if needed
     } catch (err) {
-      setMessage('❌ Invalid credentials');
+      setMessage("❌ Invalid credentials");
     }
   };
 
@@ -49,7 +53,10 @@ const LoginForm = () => {
           required
           className="w-full p-2 border rounded"
         />
-        <button type="submit" className="w-full bg-black text-white p-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-black text-white p-2 rounded"
+        >
           Login
         </button>
       </form>

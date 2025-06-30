@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import axios from "axios";
+import axios from "../utils/axios"; // Use your axios wrapper
 
 const socket = io("http://localhost:5000"); // Replace with your live server URL for deployment
 

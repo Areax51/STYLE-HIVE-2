@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../utils/axios"; // Use your axios wrapper
 
 // 🔧 Base API setup
 const API = axios.create({

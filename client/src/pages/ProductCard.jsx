@@ -11,12 +11,9 @@ const ProductCard = ({ product }) => {
       const res = await axios.post(
         "/api/favorites",
         { productId: product._id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       alert("✅ Added to favorites!");
     } catch (err) {
       if (err.response?.data?.msg === "Already in favorites") {

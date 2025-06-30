@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import axios from "../utils/axios"; // Use your axios wrapper
 import { io } from "socket.io-client";
 import TypingDots from "./TypingDots";
 import { Heart, Tag } from "lucide-react";

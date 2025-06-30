@@ -1,6 +1,6 @@
 // src/components/ProductCard.jsx
 import React, { useContext } from "react";
-import axios from "axios";
+import axios from "../utils/axios"; // Use your axios wrapper
 import { AuthContext } from "../contexts/AuthContext";
 
 const ProductCard = ({ product }) => {

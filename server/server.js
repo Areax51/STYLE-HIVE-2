@@ -1,3 +1,4 @@
+// index.js
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -22,38 +23,57 @@ connectDB();
 
 const app = express();
 
-// ✅ Middleware
-app.use(express.json());
+// ✅ Allowed origins for Vercel and Localhost
+const allowedOrigins = [
+  "https://style-hive-2.vercel.app",
+  "http://localhost:5173",
+];
+
+// ✅ CORS Middleware
 app.use(
   cors({
-    origin: ["https://style-hive-2.vercel.app", "http://localhost:5173"],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ API Endpoints
+app.options("*", cors()); // ✅ Preflight support
+
+// ✅ Middleware
+app.use(express.json());
+
+// ✅ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 
-// ✅ HTTP Server
+// ✅ Create HTTP Server
 const server = http.createServer(app);
 
 // ✅ Socket.io Setup
 const io = new Server(server, {
   cors: {
-    origin: ["https://style-hive-2.vercel.app", "http://localhost:5173"],
+    origin: allowedOrigins,
+    credentials: true,
     methods: ["GET", "POST"],
   },
 });
 
-// ✅ OpenAI Instance
+// ✅ OpenAI Setup
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// ✅ AI Streaming Socket
+// ✅ Socket.io Handlers
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
+  console.log("✅ Client connected:", socket.id);
 
   socket.on("userMessage", async ({ message, token }) => {
     if (!message || !token) {

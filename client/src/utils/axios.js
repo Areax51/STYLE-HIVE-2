@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://style-hive-2.onrender.com/api",
+  baseURL: "https://style-hive-2-production.up.railway.app/api", // ✅ New Railway backend
   headers: {
     "Content-Type": "application/json",
   },
@@ -17,6 +17,7 @@ instance.interceptors.request.use((config) => {
 });
 
 export default instance;
+
 export const setAuthToken = (token) => {
   if (token) {
     instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -24,12 +25,15 @@ export const setAuthToken = (token) => {
     delete instance.defaults.headers.common["Authorization"];
   }
 };
+
 export const clearAuthToken = () => {
   delete instance.defaults.headers.common["Authorization"];
 };
+
 export const setBaseURL = (url) => {
   instance.defaults.baseURL = url;
 };
+
 export const getBaseURL = () => {
   return instance.defaults.baseURL;
 };

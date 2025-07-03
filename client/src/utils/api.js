@@ -1,16 +1,5 @@
-import axios from "../utils/axios"; // Use your axios wrapper
-
-// 🔧 Base API setup
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Example: http://localhost:5000/api
-});
-
-// 🔒 Automatically attach JWT token to every request
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import API from "../utils/axios"; // ✅ Preconfigured Axios
+import { io } from "socket.io-client";
 
 //
 // ✅ AUTH

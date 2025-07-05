@@ -1,55 +1,45 @@
-// src/context/FavoritesContext.jsx
-import { createContext, useContext, useState, useEffect } from "react";
-import { getFavorites, addFavorite, removeFavorite } from "../utils/api"; // ✅ use your new api.js wrapper
+// client/src/context/FavoritesContext.jsx
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { getFavorites, addFavorite, removeFavorite } from "../utils/api";
+import { toast } from "react-toastify";
 
 const FavoritesContext = createContext();
+export const useFavorites = () => useContext(FavoritesContext);
 
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
-  const token = localStorage.getItem("token");
 
-  // Fetch favorites once token is available
   useEffect(() => {
-    if (!token) return;
-    const fetchFavorites = async () => {
+    (async () => {
       try {
         const res = await getFavorites();
-        setFavorites(res.data); // product objects returned from backend
+        setFavorites(res.data);
       } catch (err) {
-        console.error("❌ Fetch favorites failed:", err.message);
+        console.error("Error fetching favorites:", err);
+        toast.error("Failed to load favorites");
       }
-    };
-    fetchFavorites();
-  }, [token]);
+    })();
+  }, []);
 
   const addToFavorites = async (product) => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(
-        "/api/favorites",
-        { productId: product._id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await addFavorite(product._id);
       setFavorites((prev) => [...prev, res.data]);
+      toast.success("Added to favorites");
     } catch (err) {
-      console.error(
-        "Add to favorites failed:",
-        err.response?.data || err.message
-      );
+      console.error("Error adding favorite:", err);
+      toast.error("Failed to add to favorites");
     }
   };
 
   const removeFromFavorites = async (productId) => {
-    if (!token) return;
     try {
       await removeFavorite(productId);
-      setFavorites((prev) => prev.filter((p) => p._id !== productId));
+      setFavorites((prev) => prev.filter((f) => f._id !== productId));
+      toast.info("Removed from favorites");
     } catch (err) {
-      console.error("Remove from favorites failed:", err.message);
+      console.error("Error removing favorite:", err);
+      toast.error("Failed to remove from favorites");
     }
   };
 
@@ -61,5 +51,3 @@ export const FavoritesProvider = ({ children }) => {
     </FavoritesContext.Provider>
   );
 };
-
-export const useFavorites = () => useContext(FavoritesContext);

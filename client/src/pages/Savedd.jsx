@@ -1,16 +1,18 @@
+// src/pages/Savedd.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../utils/axios"; // Use your axios wrapper
+import axios from "../utils/axios"; // your axios wrapper
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-const Saved = () => {
+const Savedd = () => {
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const res = await axios.get("/users/favorites");
-        setFavorites(res.data.favorites);
+        // ✅ hit the correct endpoint
+        const res = await axios.get("/favorites");
+        setFavorites(res.data);
       } catch (error) {
         console.error("Failed to load favorites", error);
       }
@@ -21,7 +23,8 @@ const Saved = () => {
 
   const removeFromFavorites = async (id) => {
     try {
-      await axios.delete(`/users/favorites/${id}`);
+      // ✅ delete from the right route
+      await axios.delete(`/favorites/${id}`);
       setFavorites((prev) => prev.filter((item) => item._id !== id));
     } catch (error) {
       console.error("Error removing item", error);
@@ -85,4 +88,4 @@ const Saved = () => {
   );
 };
 
-export default Saved;
+export default Savedd;

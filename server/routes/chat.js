@@ -1,12 +1,16 @@
+// server/routes/chat.js
+
+import dotenv from "dotenv";
+dotenv.config(); // ← load env first
+
+console.log("🔑 OpenAI key loaded:", Boolean(process.env.OPENAI_API_KEY));
+
 import express from "express";
 import multer from "multer";
 import { OpenAI } from "openai";
-import dotenv from "dotenv";
 import authMiddleware from "../middleware/auth.js";
 import Chat from "../models/chat.js";
 import Product from "../models/Product.js";
-
-dotenv.config();
 
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -18,6 +22,7 @@ router.post("/", authMiddleware, async (req, res) => {
   if (!message) return res.status(400).json({ msg: "Message is required" });
 
   try {
+    // Fetch some products to include in the system prompt
     const products = await Product.find().limit(50);
     const productList = products
       .map((p) => `${p.name} - $${p.price}`)
@@ -30,6 +35,7 @@ ${productList}
 Be bold, expressive, and style-forward.
 `;
 
+    // 📝 Primary chat completion
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
@@ -65,6 +71,7 @@ Respond ONLY with a JSON array of strings.
       tags = [];
     }
 
+    // Save chat
     const newChat = await Chat.create({
       userId: req.user.id,
       prompt: message,
@@ -74,8 +81,16 @@ Respond ONLY with a JSON array of strings.
 
     res.json({ reply, tags, chatId: newChat._id });
   } catch (err) {
-    console.error("AI Chat Error:", err.message);
-    res.status(500).json({ msg: "AI service error" });
+    // Enhanced error logging
+    console.error("🛑 AI Chat Error (full):", err);
+    if (err.response) {
+      console.error("🛑 OpenAI response data:", err.response.data);
+    }
+    // Return the raw detail so client can see it
+    res.status(500).json({
+      msg: "AI service error",
+      detail: err.response?.data || err.message,
+    });
   }
 });
 
@@ -91,7 +106,7 @@ router.post(
       const base64Image = req.file.buffer.toString("base64");
 
       const visionRes = await openai.chat.completions.create({
-        model: "gpt-4-vision-preview",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "user",
@@ -118,8 +133,13 @@ Include a brief summary of the style and ideal occasion.`,
         visionRes.choices?.[0]?.message?.content || "AI did not respond.";
       res.json({ response: reply });
     } catch (err) {
-      console.error("AI Vision Error:", err.response?.data || err.message);
-      res.status(500).json({ msg: "AI service error" });
+      console.error("🛑 AI Vision Error (full):", err);
+      if (err.response)
+        console.error("🛑 Vision response data:", err.response.data);
+      res.status(500).json({
+        msg: "AI service error",
+        detail: err.response?.data || err.message,
+      });
     }
   }
 );
@@ -132,6 +152,7 @@ router.get("/history", authMiddleware, async (req, res) => {
       .limit(10);
     res.json(history);
   } catch (err) {
+    console.error("❌ Fetching history failed:", err);
     res.status(500).json({ msg: "Failed to fetch chat history" });
   }
 });
@@ -147,6 +168,7 @@ router.patch("/:id", authMiddleware, async (req, res) => {
     if (!chat) return res.status(404).json({ msg: "Chat not found" });
     res.json(chat);
   } catch (err) {
+    console.error("❌ Updating like status failed:", err);
     res.status(500).json({ msg: "Failed to update like status" });
   }
 });

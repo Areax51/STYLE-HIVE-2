@@ -17,8 +17,7 @@ export const fetchProducts = () => API.get("/products");
 //
 export const getFavorites = () => API.get("/favorites");
 
-export const addFavorite = (productId) =>
-  API.post("/favorites", { product: productId });
+export const addFavorite = (productId) => API.post("/favorites", { productId });
 
 export const removeFavorite = (productId) =>
   API.delete(`/favorites/${productId}`);

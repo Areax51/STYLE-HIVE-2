@@ -1,8 +1,9 @@
-// postcss.config.cjs
+// client/postcss.config.cjs
 module.exports = {
   plugins: {
-    "@tailwindcss/postcss": {}, // uses the new separate package
+    tailwindcss: {},
     autoprefixer: {},
+    // if you still want scrollbar styles at the PostCSS layer:
     "tailwind-scrollbar": {},
   },
 };

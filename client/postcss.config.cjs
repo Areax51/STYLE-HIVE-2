@@ -1,7 +1,7 @@
-// client/postcss.config.cjs
+// postcss.config.cjs
 module.exports = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    "@tailwindcss/postcss": {}, // uses the new separate package
     autoprefixer: {},
     "tailwind-scrollbar": {},
   },

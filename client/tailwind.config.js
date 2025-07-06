@@ -1,6 +1,17 @@
 // tailwind.config.js
+import typography from "@tailwindcss/typography";
+import scrollbar from "tailwind-scrollbar";
+
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  safelist: [
+    // anything starting with bg- will now be allowed
+    { pattern: /^bg-.*/ },
+    // explicitly allow your custom utilities too
+    "text-white",
+    "font-sans",
+    "btn-gold",
+  ],
   theme: {
     extend: {
       colors: {
@@ -15,6 +26,6 @@ export default {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography"), require("tailwind-scrollbar")],
+  plugins: [typography, scrollbar],
   darkMode: "class",
 };

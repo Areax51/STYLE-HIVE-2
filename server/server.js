@@ -35,8 +35,8 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (o, cb) =>
-      !o || allowedOrigins.includes(o)
+    origin: (origin, cb) =>
+      !origin || allowedOrigins.includes(origin)
         ? cb(null, true)
         : cb(new Error("Not allowed by CORS")),
     credentials: true,
@@ -44,7 +44,9 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.options(/.*/, cors()); // preflight
+
+// THE IMPORTANT PART — use "*", not regex
+app.options("*", cors());
 
 // ── Bodyparser ────────────────────────────────────────────────────────────────
 app.use(express.json());

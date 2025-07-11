@@ -16,9 +16,10 @@ import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
-// import userRoutes from "./routes/users.js";       // optional
-// import stylistRoutes from "./routes/stylist.js"; // optional
-// import recommendRoutes from "./routes/recommend.js"; // optional
+// (optional)
+// import userRoutes      from "./routes/users.js";
+// import stylistRoutes   from "./routes/stylist.js";
+// import recommendRoutes from "./routes/recommend.js";
 
 // Models
 import Product from "./models/Product.js";
@@ -31,19 +32,19 @@ const app = express();
 
 // ── CORS Setup ───────────────────────────────────────────────────────────────
 const allowedOrigins = [
-  "http://localhost:5173", // Vite dev
+  "http://localhost:5173",
   "https://style-hive-2.vercel.app",
   "https://style-hive-2-production.up.railway.app",
 ];
 
 app.use(
   cors({
-    origin: (origin, cb) =>
+    origin: (origin, callback) =>
       !origin || allowedOrigins.includes(origin)
-        ? cb(null, true)
-        : cb(new Error("Not allowed by CORS")),
+        ? callback(null, true)
+        : callback(new Error("Not allowed by CORS")),
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -57,8 +58,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
-// app.use("/api/users", userRoutes);
-// app.use("/api/stylist", stylistRoutes);
+// app.use("/api/users",     userRoutes);
+// app.use("/api/stylist",   stylistRoutes);
 // app.use("/api/recommend", recommendRoutes);
 
 // ── Serve Client in Production ───────────────────────────────────────────────
@@ -66,9 +67,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
-  // Serve static assets
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  // Fallback to index.html for client-side routing
+  // Fallback for client-side routing
   app.use((req, res) =>
     res.sendFile(path.join(__dirname, "../client/dist/index.html"))
   );

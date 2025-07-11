@@ -15,7 +15,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("/products"); // ✅ FIXED
+        const res = await axios.get("/api/products"); // ✅ Now with /api/
         if (Array.isArray(res.data)) {
           setProducts(res.data);
         } else {
@@ -26,6 +26,7 @@ const Products = () => {
         setProducts(fallbackProducts);
       }
     };
+
     fetchProducts();
   }, []);
 

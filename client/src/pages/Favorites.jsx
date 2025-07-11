@@ -10,7 +10,8 @@ const Favorites = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const res = await axios.get("/favorites"); // ✅ No /api prefix
+        const res = await axios.get("/api/favorites"); // ✅ Now with /api/
+
         setFavorites(res.data);
       } catch (err) {
         console.error("❌ Failed to load favorites:", err);

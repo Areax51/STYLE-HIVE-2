@@ -1,31 +1,48 @@
-import API from "../utils/axios"; // ✅ Preconfigured Axios
-import { io } from "socket.io-client";
+// src/api.js
+import API from "../utils/axios";
 
 // AUTH
-export const registerUser = (userData) =>
-  API.post("/api/auth/register", userData);
-export const loginUser = (userData) => API.post("/api/auth/login", userData);
+export const registerUser = (userData) => API.post("/auth/register", userData);
+
+export const loginUser = (userData) => API.post("/auth/login", userData);
 
 // PRODUCTS
-export const fetchProducts = () => API.get("/api/products");
+export const fetchProducts = () => API.get("/products");
 
 // FAVORITES (uses token)
-export const getFavorites = () => API.get("/api/favorites");
-export const addFavorite = (productId) =>
-  API.post("/api/favorites", { productId });
+export const getFavorites = () => API.get("/favorites");
+
+export const addFavorite = (productId) => API.post("/favorites", { productId });
+
 export const removeFavorite = (productId) =>
-  API.delete(`/api/favorites/${productId}`);
+  API.delete(`/favorites/${productId}`);
 
 // AI CHAT
-export const sendChatMessage = (message) => API.post("/api/chat", { message });
-export const getChatHistory = () => API.get("/api/chat/history");
+export const sendChatMessage = (message) => API.post("/chat", { message });
+
+export const getChatHistory = () => API.get("/chat/history");
+
 export const uploadImageForAI = (formData) =>
-  API.post("/api/chat/image", formData, {
+  API.post("/chat/image", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
 // MESSAGES (optional)
-export const sendMessage = (data) => API.post("/api/messages", data);
-export const getConversation = (userId) => API.get(`/api/messages/${userId}`);
+export const sendMessage = (data) => API.post("/messages", data);
 
-export default API;
+export const getConversation = (userId) => API.get(`/messages/${userId}`);
+
+// Optionally, group everything in a default export:
+export default {
+  registerUser,
+  loginUser,
+  fetchProducts,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  sendChatMessage,
+  getChatHistory,
+  uploadImageForAI,
+  sendMessage,
+  getConversation,
+};

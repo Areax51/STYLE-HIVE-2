@@ -1,20 +1,19 @@
-// src/axios.js (or src/api.js)
+// src/axios.js
 import axios from "axios";
 
-// Use env variable if set, else fallback to localhost (adjust as needed)
-const BASE_URL =
-  process.env.REACT_APP_API_URL ||
-  "https://style-hive-2-production.up.railway.app"; // fallback or use localhost for dev
+// Pick up REACT_APP_API_URL (CRA) or default to localhost
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
-const api = axios.create({
+const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: false, // set true only if you use cookies
 });
 
-// Request Interceptor to add JWT token if available
-api.interceptors.request.use(
+// Attach JWT automatically if present
+axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -23,21 +22,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Optional: Response Interceptor to catch errors
-api.interceptors.response.use(
-  (response) => response,
+// Optional: handle auth globally
+axiosInstance.interceptors.response.use(
+  (res) => res,
   (error) => {
-    // Optionally handle auth errors globally
     if (
       error.response &&
       (error.response.status === 401 || error.response.status === 403)
     ) {
-      // Token invalid/expired: logout user or redirect as needed
       localStorage.removeItem("token");
-      // window.location.href = "/login"; // Optional: force logout
+      // window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
 
-export default api;
+export default axiosInstance;

@@ -16,7 +16,7 @@ import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
-import userRoutes from "./routes/user.js"; // If you want /api/user
+import userRoutes from "./routes/users.js"; // If you want /api/user
 import stylistRoutes from "./routes/stylist.js"; // If you want /api/stylist
 import recommendRoutes from "./routes/recommend.js"; // If you want /api/recommend
 
@@ -60,7 +60,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/stylist", stylistRoutes);
 app.use("/api/recommend", recommendRoutes);
 // ── Serve Client in Production ───────────────────────────────────────────────

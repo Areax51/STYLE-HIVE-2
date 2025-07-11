@@ -10,14 +10,14 @@ import jwt from "jsonwebtoken";
 import connectDB from "./config/db.js";
 import { OpenAI } from "openai";
 
-// route imports
+// Routes
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
 
-// models
+// Models for Socket.IO
 import Product from "./models/Product.js";
 import Chat from "./models/chat.js";
 
@@ -25,65 +25,63 @@ dotenv.config();
 await connectDB();
 
 const app = express();
-console.log("🔥 Starting **this** server.js");
+console.log("🔑 OpenAI key loaded:", Boolean(process.env.OPENAI_API_KEY));
+console.log("🔥 Starting server.js");
 
-// ─────────────────────────────────────────────────────────────
-// ✅ GLOBAL CORS SETUP — patched for path-to-regexp error
+// ── 1) GLOBAL CORS ────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
-  "https://style-hive-2.vercel.app",
   "http://localhost:5173",
+  "https://style-hive-2.vercel.app",
+  "https://style-hive-2-production.up.railway.app",
 ];
-
 app.use(
   cors({
-    origin: (origin, cb) => {
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-      return cb(new Error("Not allowed by CORS"));
-    },
+    origin: (origin, cb) =>
+      !origin || ALLOWED_ORIGINS.includes(origin)
+        ? cb(null, true)
+        : cb(new Error("Not allowed by CORS")),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+// handle preflight for all routes
+app.options(/.*/, cors());
 
-// ❌ removed: app.options("*", cors()); → causes crash on Node 22+
-
-// ─────────────────────────────────────────────────────────────
-// DEBUG LOG for CORS
+// ── 2) DEBUG LOG (in Railway/Vercel logs) ────────────────────────────────────
 app.use((req, res, next) => {
   console.log("⬅️  Incoming Origin:", req.headers.origin);
   next();
 });
 
-// ─────────────────────────────────────────────────────────────
-// BODY PARSING
+// ── 3) BODY PARSING ───────────────────────────────────────────────────────────
 app.use(express.json());
 
-// ─────────────────────────────────────────────────────────────
-// ROUTES
+// ── 4) MOUNT YOUR API ROUTES ─────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
 
-// ─────────────────────────────────────────────────────────────
-// SERVE CLIENT IN PRODUCTION
+// ── 5) SERVE CLIENT IN PRODUCTION ─────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.get("*", (req, res) =>
-    res.sendFile(path.join(__dirname, "../client/dist/index.html"))
-  );
 }
 
-// ─────────────────────────────────────────────────────────────
-// ERROR HANDLERS
-app.use((req, res) => {
-  res.status(404).json({ msg: "Not Found" });
+// ── 6) CATCH-ALL FALLBACK (uses regex to avoid path-to-regexp “*” bug) ────────
+app.get(/.*/, (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+  } else {
+    res.status(404).json({ msg: "Not Found" });
+  }
 });
 
+// ── 7) ERROR HANDLER ───────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.stack);
   res
@@ -91,13 +89,12 @@ app.use((err, req, res, next) => {
     .json({ msg: err.message || "Internal Server Error" });
 });
 
-// ─────────────────────────────────────────────────────────────
-// START SERVER + SOCKET.IO
+// ── 8) START HTTP + SOCKET.IO ─────────────────────────────────────────────────
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
   },
 });

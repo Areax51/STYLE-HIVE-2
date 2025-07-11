@@ -11,16 +11,12 @@ import connectDB from "./config/db.js";
 
 import { OpenAI } from "openai";
 
-// Route modules
+// Route handlers
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
-// (optional imports commented out)
-// import userRoutes      from "./routes/users.js";
-// import stylistRoutes   from "./routes/stylist.js";
-// import recommendRoutes from "./routes/recommend.js";
 
 // Models for Socket.IO
 import Product from "./models/Product.js";
@@ -31,37 +27,37 @@ await connectDB();
 
 const app = express();
 
-// ── CORS SETUP ────────────────────────────────────────────────────────────────
-// Whitelist your front-end on Vercel (and localhost for dev)
-const ALLOWED = ["https://style-hive-2.vercel.app", "http://localhost:5173"];
+// ── DEBUG LOG FOR CORS ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  console.log("Incoming Origin:", req.headers.origin);
+  next();
+});
 
+// ── CORS MIDDLEWARE ───────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // allow requests with no origin (mobile apps, curl, etc)
-      if (!origin) return callback(null, true);
-      if (ALLOWED.includes(origin)) return callback(null, true);
-      callback(new Error("CORS policy: Not allowed by origin"));
-    },
-    credentials: true, // allow set-cookie
+    origin: "https://style-hive-2.vercel.app", // your front-end origin
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ── BODY PARSER ────────────────────────────────────────────────────────────────
+// ── BODY PARSING ───────────────────────────────────────────────────────────────
 app.use(express.json());
 
-// ── API ROUTES ────────────────────────────────────────────────────────────────
+// ── API ROUTES ─────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
+// (optional)
 // app.use("/api/users",     userRoutes);
 // app.use("/api/stylist",   stylistRoutes);
 // app.use("/api/recommend", recommendRoutes);
 
-// ── SERVE REACT IN PRODUCTION ──────────────────────────────────────────────────
+// ── SERVE CLIENT IN PRODUCTION ─────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -79,11 +75,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ msg: "Server Error" });
 });
 
-// ── HTTP + SOCKET.IO SERVER ───────────────────────────────────────────────────
+// ── HTTP & SOCKET.IO SERVER SETUP ─────────────────────────────────────────────
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ALLOWED,
+    origin: "https://style-hive-2.vercel.app",
     methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
   },

@@ -10,14 +10,14 @@ import jwt from "jsonwebtoken";
 import connectDB from "./config/db.js";
 import { OpenAI } from "openai";
 
-// Routes
+// route imports
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
 
-// Models
+// models
 import Product from "./models/Product.js";
 import Chat from "./models/chat.js";
 
@@ -27,7 +27,8 @@ await connectDB();
 const app = express();
 console.log("🔥 Starting **this** server.js");
 
-// ── 1) CORS ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ✅ GLOBAL CORS SETUP — patched for path-to-regexp error
 const ALLOWED_ORIGINS = [
   "https://style-hive-2.vercel.app",
   "http://localhost:5173",
@@ -44,54 +45,60 @@ app.use(
   })
 );
 
-// ── 2) Logger ─────────────────────────────────────────────
+// ❌ removed: app.options("*", cors()); → causes crash on Node 22+
+
+// ─────────────────────────────────────────────────────────────
+// DEBUG LOG for CORS
 app.use((req, res, next) => {
-  console.log(
-    "⬅️  Origin:",
-    req.headers.origin,
-    "| Path:",
-    req.method,
-    req.path
-  );
+  console.log("⬅️  Incoming Origin:", req.headers.origin);
   next();
 });
 
-// ── 3) Middleware ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// BODY PARSING
 app.use(express.json());
 
-// ── 4) Routes ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
 
-// ── 5) Serve Client in Production ─────────────────────────
+// ─────────────────────────────────────────────────────────────
+// SERVE CLIENT IN PRODUCTION
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-  });
+  app.get("*", (req, res) =>
+    res.sendFile(path.join(__dirname, "../client/dist/index.html"))
+  );
 }
 
-// ── 6) Error Handling ─────────────────────────────────────
-app.use((req, res) => res.status(404).json({ msg: "Not Found" }));
-
-app.use((err, req, res, next) => {
-  console.error("🔥 Error:", err.stack || err);
-  res.status(500).json({ msg: err.message || "Internal Server Error" });
+// ─────────────────────────────────────────────────────────────
+// ERROR HANDLERS
+app.use((req, res) => {
+  res.status(404).json({ msg: "Not Found" });
 });
 
-// ── 7) Socket.IO Server ───────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error("🔥 Server Error:", err.stack);
+  res
+    .status(err.status || 500)
+    .json({ msg: err.message || "Internal Server Error" });
+});
+
+// ─────────────────────────────────────────────────────────────
+// START SERVER + SOCKET.IO
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ALLOWED_ORIGINS,
-    credentials: true,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -115,13 +122,12 @@ io.on("connection", (socket) => {
     try {
       const products = await Product.find().limit(30);
       const list = products.map((p) => `${p.name} - $${p.price}`).join("\n");
-
       const prompt = `
 You are StyleHive AI, a stylish, futuristic assistant.
 Use these products when relevant:
 ${list}
 Be confident, brief, and inspiring.
-      `;
+`;
 
       const stream = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -142,14 +148,13 @@ Be confident, brief, and inspiring.
       await new Chat({ userId, prompt: message, response: full }).save();
       socket.emit("aiReplyComplete", full);
     } catch (err) {
-      console.error("🛑 AI error:", err);
+      console.error("🛑 AI Stream Error:", err);
       socket.emit("aiReplyError", "AI error occurred");
     }
   });
 });
 
-// ── 8) Launch ─────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`🚀 Listening on http://localhost:${PORT}`);
-});
+server.listen(PORT, () =>
+  console.log(`🚀 Listening on http://localhost:${PORT}`)
+);

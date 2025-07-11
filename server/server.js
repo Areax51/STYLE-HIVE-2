@@ -1,14 +1,14 @@
 // server/server.js
 import http from "http";
 import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
-import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import connectDB from "./config/db.js";
 
-// AI client
 import { OpenAI } from "openai";
 
 // Route modules
@@ -17,12 +17,12 @@ import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
-// (optional)
+// (optional imports commented out)
 // import userRoutes      from "./routes/users.js";
 // import stylistRoutes   from "./routes/stylist.js";
 // import recommendRoutes from "./routes/recommend.js";
 
-// Models for Socket.IO handlers
+// Models for Socket.IO
 import Product from "./models/Product.js";
 import Chat from "./models/chat.js";
 
@@ -31,36 +31,27 @@ await connectDB();
 
 const app = express();
 
-// ── MANUAL CORS MIDDLEWARE ─────────────────────────────────────────────────────
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://style-hive-2.vercel.app",
-];
+// ── CORS SETUP ────────────────────────────────────────────────────────────────
+// Whitelist your front-end on Vercel (and localhost for dev)
+const ALLOWED = ["https://style-hive-2.vercel.app", "http://localhost:5173"];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin (mobile apps, curl, etc)
+      if (!origin) return callback(null, true);
+      if (ALLOWED.includes(origin)) return callback(null, true);
+      callback(new Error("CORS policy: Not allowed by origin"));
+    },
+    credentials: true, // allow set-cookie
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  })
+);
 
-  if (req.method === "OPTIONS") {
-    // Handle preflight
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-    );
-    return res.sendStatus(204);
-  }
-
-  next();
-});
-
-// ── BODY PARSING ────────────────────────────────────────────────────────────────
+// ── BODY PARSER ────────────────────────────────────────────────────────────────
 app.use(express.json());
 
-// ── API ROUTES ─────────────────────────────────────────────────────────────────
+// ── API ROUTES ────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
@@ -70,30 +61,29 @@ app.use("/api/cart", cartRoutes);
 // app.use("/api/stylist",   stylistRoutes);
 // app.use("/api/recommend", recommendRoutes);
 
-// ── SERVE CLIENT IN PRODUCTION ─────────────────────────────────────────────────
+// ── SERVE REACT IN PRODUCTION ──────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  // Fallback for client-side routing:
   app.use((req, res) =>
     res.sendFile(path.join(__dirname, "../client/dist/index.html"))
   );
 }
 
-// ── 404 & GLOBAL ERROR HANDLERS ────────────────────────────────────────────────
+// ── 404 & ERROR HANDLERS ──────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ msg: "Not Found" }));
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ msg: "Server Error" });
 });
 
-// ── HTTP + SOCKET.IO INITIALIZATION ────────────────────────────────────────────
+// ── HTTP + SOCKET.IO SERVER ───────────────────────────────────────────────────
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: ALLOWED,
     methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
   },
@@ -152,7 +142,7 @@ ${list}
   });
 });
 
-// ── START SERVER ────────────────────────────────────────────────────────────────
+// ── START SERVER ───────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log(`🚀 Server running on http://localhost:${PORT}`)

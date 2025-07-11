@@ -16,9 +16,9 @@ import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
-import userRoutes from "./routes/users.js"; // If you want /api/user
-import stylistRoutes from "./routes/stylist.js"; // If you want /api/stylist
-import recommendRoutes from "./routes/recommend.js"; // If you want /api/recommend
+// import userRoutes from "./routes/users.js";       // optional
+// import stylistRoutes from "./routes/stylist.js"; // optional
+// import recommendRoutes from "./routes/recommend.js"; // optional
 
 // Models
 import Product from "./models/Product.js";
@@ -48,9 +48,6 @@ app.use(
   })
 );
 
-// THE IMPORTANT PART — use "*", not regex
-app.options("*", cors());
-
 // ── Bodyparser ────────────────────────────────────────────────────────────────
 app.use(express.json());
 
@@ -60,16 +57,19 @@ app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/stylist", stylistRoutes);
-app.use("/api/recommend", recommendRoutes);
+// app.use("/api/users", userRoutes);
+// app.use("/api/stylist", stylistRoutes);
+// app.use("/api/recommend", recommendRoutes);
+
 // ── Serve Client in Production ───────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
+  // Serve static assets
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.get("*", (req, res) =>
+  // Fallback to index.html for client-side routing
+  app.use((req, res) =>
     res.sendFile(path.join(__dirname, "../client/dist/index.html"))
   );
 }

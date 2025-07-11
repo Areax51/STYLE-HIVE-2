@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import { OpenAI } from "openai";
 import dotenv from "dotenv";
-import authMiddleware from "../middleware/auth.js";
+import authMiddleware from "./server/middleware/auth.js";
 
 dotenv.config();
 const router = express.Router();

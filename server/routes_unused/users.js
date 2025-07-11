@@ -1,9 +1,9 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "./server/models/User.js";
 import dotenv from "dotenv";
-import authenticate from "../middleware/auth.js";
+import authenticate from "./server/middleware/auth.js";
 
 dotenv.config();
 const router = express.Router();

@@ -8,17 +8,16 @@ import { fileURLToPath } from "url";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import connectDB from "./config/db.js";
-
 import { OpenAI } from "openai";
 
-// Route handlers
+// Routes
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
 import favoritesRoutes from "./routes/favorites.js";
 import cartRoutes from "./routes/cart.js";
 
-// Models for Socket.IO
+// Models
 import Product from "./models/Product.js";
 import Chat from "./models/chat.js";
 
@@ -26,69 +25,80 @@ dotenv.config();
 await connectDB();
 
 const app = express();
+console.log("🔥 Starting **this** server.js");
 
-// ── DEBUG LOG FOR CORS ─────────────────────────────────────────────────────────
-app.use((req, res, next) => {
-  console.log("Incoming Origin:", req.headers.origin);
-  next();
-});
+// ── 1) CORS ───────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  "https://style-hive-2.vercel.app",
+  "http://localhost:5173",
+];
 
-// ── CORS MIDDLEWARE ───────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: "https://style-hive-2.vercel.app", // your front-end origin
+    origin: (origin, cb) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      return cb(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ── BODY PARSING ───────────────────────────────────────────────────────────────
+// ── 2) Logger ─────────────────────────────────────────────
+app.use((req, res, next) => {
+  console.log(
+    "⬅️  Origin:",
+    req.headers.origin,
+    "| Path:",
+    req.method,
+    req.path
+  );
+  next();
+});
+
+// ── 3) Middleware ─────────────────────────────────────────
 app.use(express.json());
 
-// ── API ROUTES ─────────────────────────────────────────────────────────────────
+// ── 4) Routes ─────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/cart", cartRoutes);
-// (optional)
-// app.use("/api/users",     userRoutes);
-// app.use("/api/stylist",   stylistRoutes);
-// app.use("/api/recommend", recommendRoutes);
 
-// ── SERVE CLIENT IN PRODUCTION ─────────────────────────────────────────────────
+// ── 5) Serve Client in Production ─────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.use((req, res) =>
-    res.sendFile(path.join(__dirname, "../client/dist/index.html"))
-  );
+  app.get("/*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+  });
 }
 
-// ── 404 & ERROR HANDLERS ──────────────────────────────────────────────────────
+// ── 6) Error Handling ─────────────────────────────────────
 app.use((req, res) => res.status(404).json({ msg: "Not Found" }));
+
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ msg: "Server Error" });
+  console.error("🔥 Error:", err.stack || err);
+  res.status(500).json({ msg: err.message || "Internal Server Error" });
 });
 
-// ── HTTP & SOCKET.IO SERVER SETUP ─────────────────────────────────────────────
+// ── 7) Socket.IO Server ───────────────────────────────────
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://style-hive-2.vercel.app",
-    methods: ["GET", "POST", "OPTIONS"],
+    origin: ALLOWED_ORIGINS,
     credentials: true,
+    methods: ["GET", "POST"],
   },
 });
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 io.on("connection", (socket) => {
-  console.log("✅ Client connected:", socket.id);
+  console.log("✅ Socket connected:", socket.id);
 
   socket.on("userMessage", async ({ message, token }) => {
     if (!message || !token) {
@@ -105,13 +115,13 @@ io.on("connection", (socket) => {
     try {
       const products = await Product.find().limit(30);
       const list = products.map((p) => `${p.name} - $${p.price}`).join("\n");
+
       const prompt = `
 You are StyleHive AI, a stylish, futuristic assistant.
-- Recommend outfits and style advice.
-- Use these products when relevant:
+Use these products when relevant:
 ${list}
-- Be confident, brief, and inspiring.
-`;
+Be confident, brief, and inspiring.
+      `;
 
       const stream = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -138,8 +148,8 @@ ${list}
   });
 });
 
-// ── START SERVER ───────────────────────────────────────────────────────────────
+// ── 8) Launch ─────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
-);
+server.listen(PORT, () => {
+  console.log(`🚀 Listening on http://localhost:${PORT}`);
+});

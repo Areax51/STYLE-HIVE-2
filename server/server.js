@@ -1,16 +1,17 @@
 // server/server.js
 import http from "http";
 import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "socket.io";
-import { OpenAI } from "openai";
+import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import connectDB from "./config/db.js";
 
-// Routes
+// AI client
+import { OpenAI } from "openai";
+
+// Route modules
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
 import chatRoutes from "./routes/chat.js";
@@ -21,7 +22,7 @@ import cartRoutes from "./routes/cart.js";
 // import stylistRoutes   from "./routes/stylist.js";
 // import recommendRoutes from "./routes/recommend.js";
 
-// Models
+// Models for Socket.IO handlers
 import Product from "./models/Product.js";
 import Chat from "./models/chat.js";
 
@@ -30,29 +31,36 @@ await connectDB();
 
 const app = express();
 
-// ── CORS Setup ───────────────────────────────────────────────────────────────
+// ── MANUAL CORS MIDDLEWARE ─────────────────────────────────────────────────────
 const allowedOrigins = [
   "http://localhost:5173",
   "https://style-hive-2.vercel.app",
-  "https://style-hive-2-production.up.railway.app",
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) =>
-      !origin || allowedOrigins.includes(origin)
-        ? callback(null, true)
-        : callback(new Error("Not allowed by CORS")),
-    credentials: true,
-    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
 
-// ── Bodyparser ────────────────────────────────────────────────────────────────
+  if (req.method === "OPTIONS") {
+    // Handle preflight
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    );
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+// ── BODY PARSING ────────────────────────────────────────────────────────────────
 app.use(express.json());
 
-// ── API Routes ───────────────────────────────────────────────────────────────
+// ── API ROUTES ─────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
@@ -62,29 +70,33 @@ app.use("/api/cart", cartRoutes);
 // app.use("/api/stylist",   stylistRoutes);
 // app.use("/api/recommend", recommendRoutes);
 
-// ── Serve Client in Production ───────────────────────────────────────────────
+// ── SERVE CLIENT IN PRODUCTION ─────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  // Fallback for client-side routing
+  // Fallback for client-side routing:
   app.use((req, res) =>
     res.sendFile(path.join(__dirname, "../client/dist/index.html"))
   );
 }
 
-// ── 404 & Error Handlers ─────────────────────────────────────────────────────
+// ── 404 & GLOBAL ERROR HANDLERS ────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ msg: "Not Found" }));
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ msg: "Server Error" });
 });
 
-// ── HTTP + Socket.IO Server ─────────────────────────────────────────────────
+// ── HTTP + SOCKET.IO INITIALIZATION ────────────────────────────────────────────
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: allowedOrigins, credentials: true, methods: ["GET", "POST"] },
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+  },
 });
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -93,8 +105,9 @@ io.on("connection", (socket) => {
   console.log("✅ Client connected:", socket.id);
 
   socket.on("userMessage", async ({ message, token }) => {
-    if (!message || !token)
+    if (!message || !token) {
       return socket.emit("aiReplyError", "Message and token are required.");
+    }
 
     let userId;
     try {
@@ -139,7 +152,7 @@ ${list}
   });
 });
 
-// ── Start Server ──────────────────────────────────────────────────────────────
+// ── START SERVER ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log(`🚀 Server running on http://localhost:${PORT}`)

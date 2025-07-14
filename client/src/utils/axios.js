@@ -1,14 +1,14 @@
 // src/axios.js
 import axios from "axios";
 
-// Pick up REACT_APP_API_URL (CRA) or default to localhost
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+// Use REACT_APP_API_URL if explicitly set; otherwise default to relative /api
+const BASE_URL = process.env.REACT_APP_API_URL?.trim()
+  ? process.env.REACT_APP_API_URL
+  : "/api";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
   withCredentials: false, // set true only if you use cookies
 });
 

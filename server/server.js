@@ -1,4 +1,3 @@
-// server/server.js
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -27,7 +26,7 @@ await connectDB();
 const app = express();
 console.log("🔥 Starting server.js");
 
-// 1) GLOBAL CORS — allow your two front-ends (and no-origin for tools)
+// 1) GLOBAL CORS — allow your two front-ends
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "https://style-hive-2.vercel.app",
@@ -42,30 +41,41 @@ app.use(
   })
 );
 
-// ensure OPTIONS pre-flights work on all routes
-app.options("*", cors());
+// 2) GLOBAL PRE-FLIGHT (regex catches everything)
+app.options(/.*/, cors());
 
-// 2) BODY PARSER
+// 3) BODY PARSER
 app.use(express.json());
 
-// 3) MOUNT API ROUTES
-app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/favorites", favoritesRoutes);
-app.use("/api/cart", cartRoutes);
+// 4) MOUNT API ROUTES (with debug wrapping)
+[
+  ["/api/auth", authRoutes],
+  ["/api/products", productRoutes],
+  ["/api/chat", chatRoutes],
+  ["/api/favorites", favoritesRoutes],
+  ["/api/cart", cartRoutes],
+].forEach(([routePath, router]) => {
+  try {
+    console.log(`→ Mounting ${routePath}`);
+    app.use(routePath, router);
+  } catch (err) {
+    console.error(`‼️ Failed to mount ${routePath}:`, err);
+  }
+});
 
-// 4) SERVE VITE APP IN PRODUCTION
+// 5) SERVE VITE APP IN PRODUCTION + SPA catch-all using regex
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.get("*", (req, res) =>
+  // catch-all for client-side routing
+  app.get(/.*/, (req, res) =>
     res.sendFile(path.join(__dirname, "../client/dist/index.html"))
   );
 }
 
-// 5) 404 & ERROR HANDLING (after CORS)
+// 6) 404 & ERROR HANDLING (after CORS)
 app.use((req, res) => res.status(404).json({ msg: "Not Found" }));
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err.stack);
@@ -74,7 +84,7 @@ app.use((err, req, res, next) => {
     .json({ msg: err.message || "Internal Server Error" });
 });
 
-// 6) START HTTP + SOCKET.IO
+// 7) START HTTP + SOCKET.IO
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {

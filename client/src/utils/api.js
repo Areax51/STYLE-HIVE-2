@@ -1,48 +1,49 @@
 // src/api.js
-import API from "../utils/axios";
+import API from "./axios";
 
-// AUTH
-export const registerUser = (userData) => API.post("/auth/register", userData);
+// ─── AUTH ───────────────────────────────────────────────────────
+export const registerUser = (data) => API.post("/api/auth/register", data);
+export const loginUser = (data) => API.post("/api/auth/login", data);
 
-export const loginUser = (userData) => API.post("/auth/login", userData);
+// ─── PRODUCTS ──────────────────────────────────────────────────
+export const fetchProducts = () => API.get("/api/products");
+export const fetchProductById = (id) => API.get(`/api/products/${id}`);
 
-// PRODUCTS
-export const fetchProducts = () => API.get("/products");
+// ─── FAVORITES ─────────────────────────────────────────────────
+export const getFavorites = () => API.get("/api/favorites");
+export const addFavorite = (id) =>
+  API.post("/api/favorites", { productId: id });
+export const removeFavorite = (id) => API.delete(`/api/favorites/${id}`);
 
-// FAVORITES (uses token)
-export const getFavorites = () => API.get("/favorites");
+// ─── CART ─────────────────────────────────────────────────────
+export const addToCart = (userId, product) =>
+  API.post("/api/cart/add", { userId, product });
+export const getCart = (userId) => API.get(`/api/cart/${userId}`);
 
-export const addFavorite = (productId) => API.post("/favorites", { productId });
-
-export const removeFavorite = (productId) =>
-  API.delete(`/favorites/${productId}`);
-
-// AI CHAT
-export const sendChatMessage = (message) => API.post("/chat", { message });
-
-export const getChatHistory = () => API.get("/chat/history");
-
-export const uploadImageForAI = (formData) =>
-  API.post("/chat/image", formData, {
+// ─── AI CHAT ───────────────────────────────────────────────────
+export const sendChatMessage = (msg) => API.post("/api/chat", { message: msg });
+export const getChatHistory = () => API.get("/api/chat/history");
+export const uploadImageForAI = (form) =>
+  API.post("/api/chat/image", form, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-// MESSAGES (optional)
-export const sendMessage = (data) => API.post("/messages", data);
+// ─── SOCKET.IO ─────────────────────────────────────────────────
+export const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_BASE_URL?.trim() || "http://localhost:5000";
 
-export const getConversation = (userId) => API.get(`/messages/${userId}`);
-
-// Optionally, group everything in a default export:
 export default {
   registerUser,
   loginUser,
   fetchProducts,
+  fetchProductById,
   getFavorites,
   addFavorite,
   removeFavorite,
+  addToCart,
+  getCart,
   sendChatMessage,
   getChatHistory,
   uploadImageForAI,
-  sendMessage,
-  getConversation,
+  SOCKET_URL,
 };

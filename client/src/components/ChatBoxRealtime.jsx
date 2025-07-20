@@ -1,29 +1,41 @@
-import { useState } from "react";
-import { useAIChat } from "../hooks/useAiChat"; // Adjust the import path as needed
+import { useState, useEffect, useRef } from "react";
+import { useAIChat } from "../hooks/useAiChat"; // adjust path if needed
 
 const ChatBoxRealtime = () => {
   const [input, setInput] = useState("");
   const { messages, stream, matched, sendMessage } = useAIChat({
     liveMatching: true,
   });
+  const messagesEndRef = useRef(null);
 
   const handleSend = () => {
-    sendMessage(input);
+    const trimmed = input.trim();
+    if (!trimmed) return;
+    sendMessage(trimmed);
     setInput("");
   };
 
+  // scroll to bottom on new content
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, stream, matched]);
+
   return (
-    <div className="h-[90vh] bg-black text-white p-6 flex flex-col max-w-5xl mx-auto">
+    <section className="flex flex-col h-[90vh] max-w-5xl mx-auto bg-black text-white p-6">
       <div className="flex-1 overflow-y-auto space-y-6 mb-4">
-        {messages.map((msg, i) => (
-          <div key={i} className="space-y-2">
-            <p className="text-gold font-bold">You:</p>
-            <p>{msg.prompt}</p>
+        {messages.map((msg, idx) => (
+          <article key={msg._id ?? idx} className="space-y-2">
+            <div>
+              <p className="text-gold font-bold">You:</p>
+              <p>{msg.prompt}</p>
+            </div>
             <div className="bg-white/10 p-4 rounded-lg border border-gold">
               <p className="text-gold font-bold">StyleHive AI:</p>
-              <p>{msg.response ?? (i === messages.length - 1 && stream)}</p>
+              <p>
+                {msg.response ?? (idx === messages.length - 1 ? stream : "")}
+              </p>
             </div>
-          </div>
+          </article>
         ))}
 
         {stream && matched.length > 0 && (
@@ -44,24 +56,29 @@ const ChatBoxRealtime = () => {
             ))}
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="flex gap-2 mt-auto">
         <input
+          type="text"
+          aria-label="Chat input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          className="flex-1 bg-gray-800 p-3 rounded border border-gold text-white"
+          className="flex-1 bg-gray-800 p-3 rounded border border-gold text-white focus:outline-none"
           placeholder="Ask your stylist anything..."
         />
         <button
           onClick={handleSend}
-          className="px-6 py-2 bg-gold text-black font-bold rounded hover:bg-yellow-400"
+          aria-label="Send message"
+          className="px-6 py-2 bg-gold text-black font-bold rounded hover:bg-yellow-400 focus:outline-none"
         >
           Send
         </button>
       </div>
-    </div>
+    </section>
   );
 };
 

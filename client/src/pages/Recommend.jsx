@@ -1,51 +1,73 @@
-import { useEffect, useState } from "react";
+// src/pages/RecommendPage.jsx
+import React, { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import axios from "../utils/axios";
 import ProductCard from "../components/ProductCard";
+import { useCart } from "../context/CartContext";
+import { toast } from "react-toastify";
 
-const Recommend = () => {
+const RecommendPage = () => {
+  const { cart } = useCart();
   const [recommended, setRecommended] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("stylehive-cart")) || [];
-
     const fetchRecommendations = async () => {
+      setLoading(true);
       try {
-        const res = await fetch("http://localhost:5000/api/recommend", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ saved }),
-        });
-
-        const data = await res.json();
-        setRecommended(data);
-      } catch (error) {
-        console.error("Error fetching recommendations:", error);
+        const res = await axios.post("/recommend", { saved: cart });
+        if (Array.isArray(res.data)) {
+          setRecommended(res.data);
+        } else if (Array.isArray(res.data.recommendations)) {
+          setRecommended(res.data.recommendations);
+        } else {
+          throw new Error("Unexpected response format");
+        }
+      } catch (err) {
+        console.error("Error fetching recommendations:", err);
+        toast.error("Could not load recommendations");
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (saved.length > 0) fetchRecommendations();
-  }, []);
+    if (cart.length > 0) {
+      fetchRecommendations();
+    }
+  }, [cart]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 size={48} className="animate-spin text-gold" />
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-black text-white min-h-screen px-6 py-8">
-      <h1 className="text-3xl font-bold text-gold mb-6 text-center">
+    <section className="min-h-screen bg-black text-white px-6 py-10">
+      <h1 className="text-3xl font-bold text-gold mb-8 text-center">
         Recommended for You
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {recommended.length > 0 ? (
-          recommended.map((product, i) => (
-            <ProductCard product={product} key={i} />
-          ))
-        ) : (
-          <p className="text-center col-span-full">
-            No recommendations yet. Save some products first!
-          </p>
-        )}
-      </div>
-    </div>
+      {cart.length === 0 ? (
+        <p className="text-center text-gray-400">
+          Your cart is empty. Add some items to get personalized
+          recommendations.
+        </p>
+      ) : recommended.length === 0 ? (
+        <p className="text-center text-gray-400">
+          No recommendations yet. Try adding more products to your cart!
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {recommended.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 };
 
-export default Recommend;
+export default RecommendPage;

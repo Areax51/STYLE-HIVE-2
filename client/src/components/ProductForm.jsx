@@ -1,55 +1,167 @@
-import { useState } from 'react';
-import axios from '..';
+import { useState } from "react";
+import axios from "../utils/axios";
+import { Loader2 } from "lucide-react";
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
 const ProductForm = () => {
-  const [product, setProduct] = useState({
-    name: '',
-    description: '',
-    price: '',
-    imageUrl: ''
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    imageUrl: "",
   });
-
-  const [message, setMessage] = useState('');
-  const token = localStorage.getItem('token'); // Assume user is logged in
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
+    setMessage("");
+    setLoading(true);
 
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/products',
-        product,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      setMessage('✅ Product created successfully');
-      setProduct({ name: '', description: '', price: '', imageUrl: '' });
+      await axios.post("/products", form);
+      setMessage("✅ Product created successfully!");
+      setForm({ name: "", description: "", price: "", imageUrl: "" });
     } catch (err) {
-      setMessage('❌ Error creating product');
+      console.error(err);
+      setMessage("❌ Error creating product. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold mb-4">Create New Product</h2>
-      {message && <p className="mb-4 text-sm">{message}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="text" name="name" value={product.name} onChange={handleChange} placeholder="Name" required className="w-full p-2 border rounded" />
-        <input type="text" name="description" value={product.description} onChange={handleChange} placeholder="Description" className="w-full p-2 border rounded" />
-        <input type="number" name="price" value={product.price} onChange={handleChange} placeholder="Price" required className="w-full p-2 border rounded" />
-        <input type="text" name="imageUrl" value={product.imageUrl} onChange={handleChange} placeholder="Image URL" className="w-full p-2 border rounded" />
-        <button type="submit" className="w-full bg-black text-white p-2 rounded">Create Product</button>
-      </form>
-    </div>
+    <section className="min-h-screen bg-black flex items-center justify-center py-10 px-4">
+      <div className="w-full max-w-lg bg-gray-900/80 backdrop-blur-md p-8 rounded-2xl shadow-lg">
+        <h2 className="text-2xl font-bold text-gold mb-6 text-center">
+          Create New Product
+        </h2>
+
+        {message && (
+          <p
+            className={`mb-4 text-sm ${
+              message.startsWith("✅") ? "text-green-400" : "text-red-500"
+            }`}
+            role="alert"
+          >
+            {message}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Name<span className="text-red-500">*</span>
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              value={form.description}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Price (USD)<span className="text-red-500">*</span>
+            </label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="imageUrl"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Image URL
+            </label>
+            <input
+              id="imageUrl"
+              name="imageUrl"
+              type="url"
+              value={form.imageUrl}
+              onChange={handleChange}
+              placeholder="https://..."
+              className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
+
+          {form.imageUrl && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-400 mb-1">Preview:</p>
+              <img
+                src={form.imageUrl}
+                alt="Product preview"
+                onError={(e) => (e.currentTarget.src = "/placeholder-300.png")}
+                className="w-full h-48 object-cover rounded-lg border border-gold"
+              />
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={classNames(
+              "w-full flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-gold",
+              loading
+                ? "bg-gold opacity-50 cursor-not-allowed"
+                : "bg-gold hover:bg-yellow-400"
+            )}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={18} />
+                Creating...
+              </>
+            ) : (
+              "Create Product"
+            )}
+          </button>
+        </form>
+      </div>
+    </section>
   );
 };
 

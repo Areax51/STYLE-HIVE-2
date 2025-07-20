@@ -1,5 +1,5 @@
 // src/hooks/useAIChat.js
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   connectSocket,
   disconnectSocket,
@@ -11,52 +11,65 @@ import {
 import { fetchProducts, getChatHistory } from "../utils/api";
 
 export function useAIChat({ loadHistory = false, liveMatching = false } = {}) {
-  const [messages, setMessages] = useState([]); // { prompt, response, _id?, liked?, tags? }
-  const [stream, setStream] = useState(""); // current streaming text
-  const [products, setProducts] = useState([]); // full product list
-  const [matched, setMatched] = useState([]); // top-4 matches from stream
+  const [messages, setMessages] = useState([]);
+  const [stream, setStream] = useState("");
+  const [matched, setMatched] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const token = localStorage.getItem("token");
-  const latestMessages = useRef(messages);
-  latestMessages.current = messages;
+  const productsRef = useRef([]);
 
   // 1️⃣ Optionally load chat history
   useEffect(() => {
     if (!loadHistory) return;
+    let active = true;
     getChatHistory()
-      .then((res) => setMessages(res.data.reverse()))
-      .catch((err) => console.error("History load error:", err));
+      .then((res) => {
+        if (active) setMessages(res.data.reverse());
+      })
+      .catch((err) => {
+        console.error("History load error:", err);
+        if (active) setError("Failed to load chat history");
+      });
+    return () => {
+      active = false;
+    };
   }, [loadHistory]);
 
   // 2️⃣ Optionally load products for live matching
   useEffect(() => {
-    if (!liveMatching) return;
+    if (!liveMatching) {
+      productsRef.current = [];
+      return;
+    }
     fetchProducts()
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error("Product load error:", err));
+      .then((res) => {
+        productsRef.current = res.data;
+      })
+      .catch((err) => {
+        console.error("Product load error:", err);
+      });
   }, [liveMatching]);
 
-  // 3️⃣ Wire up socket events once
+  // 3️⃣ Wire up socket events once on mount
   useEffect(() => {
     connectSocket();
 
-    onAIReplyChunk((chunk) => {
+    const handleChunk = (chunk) => {
       setStream((prev) => {
         const updated = prev + chunk;
-        // update matches if requested
         if (liveMatching) {
-          const matches = products.filter((p) =>
+          const matches = productsRef.current.filter((p) =>
             updated.toLowerCase().includes(p.name.toLowerCase())
           );
           setMatched(matches.slice(0, 4));
         }
         return updated;
       });
-    });
+    };
 
-    onAIReplyComplete((fullReply) => {
+    const handleComplete = (fullReply) => {
       setLoading(false);
-      // replace last user prompt with full obj
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         const completed = {
@@ -69,35 +82,58 @@ export function useAIChat({ loadHistory = false, liveMatching = false } = {}) {
       });
       setStream("");
       setMatched([]);
-    });
+    };
 
-    onAIReplyError((err) => {
+    const handleError = (err) => {
       console.error("AI Error:", err);
+      setError("An error occurred. Please try again.");
       setLoading(false);
       setStream("");
       setMatched([]);
-    });
+    };
+
+    onAIReplyChunk(handleChunk);
+    onAIReplyComplete(handleComplete);
+    onAIReplyError(handleError);
 
     return () => {
       disconnectSocket();
     };
-  }, [liveMatching, products]);
+  }, [liveMatching]);
 
   // 4️⃣ sendMessage helper
-  const sendMessage = (text) => {
-    if (!text?.trim()) return;
-    // add a placeholder message
-    setMessages((prev) => [...prev, { prompt: text }]);
+  const sendMessage = useCallback(
+    (text) => {
+      const trimmed = text?.trim();
+      if (!trimmed) return;
+      setError("");
+      setMessages((prev) => [
+        ...prev,
+        { prompt: trimmed, _id: null, liked: false, tags: [] },
+      ]);
+      setStream("");
+      setLoading(true);
+      sendUserMessage(trimmed, token);
+    },
+    [token]
+  );
+
+  // 5️⃣ clearChat helper
+  const clearChat = useCallback(() => {
+    setMessages([]);
     setStream("");
-    setLoading(true);
-    sendUserMessage(text, token);
-  };
+    setMatched([]);
+    setLoading(false);
+    setError("");
+  }, []);
 
   return {
     messages,
     stream,
     matched,
     loading,
+    error,
     sendMessage,
+    clearChat,
   };
 }

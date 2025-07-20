@@ -1,16 +1,22 @@
 // src/aiAxios.js
+// -------------------------------------------------------------
+// HANDOFF: AI-specific axios instance.
+// Uses same HOST unless VITE_AI_BASE_URL_HOST overrides.
+// Base aligns with /api for now (same service).
+// Split in future if AI service is separated.
+// -------------------------------------------------------------
 import axios from "axios";
+import { API_HOST } from "./axios";
 
-// Use VITE_AI_BASE_URL if set, otherwise fall back to your same API host
-const AI_BASE =
-  import.meta.env.VITE_AI_BASE_URL?.trim() ||
-  import.meta.env.VITE_API_BASE_URL?.trim() ||
-  "/api";
+const clean = (h) => h?.trim().replace(/\/+$/, "");
+
+const AI_HOST = clean(import.meta.env.VITE_AI_BASE_URL_HOST) || clean(API_HOST);
+
+export const AI_BASE_URL = `${AI_HOST}/api`;
 
 const aiApi = axios.create({
-  baseURL: AI_BASE,
+  baseURL: AI_BASE_URL,
   headers: { "Content-Type": "application/json" },
-  withCredentials: false,
 });
 
 aiApi.interceptors.request.use((config) => {
@@ -18,5 +24,16 @@ aiApi.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+aiApi.interceptors.response.use(
+  (r) => r,
+  (e) => {
+    if (e?.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.dispatchEvent(new Event("auth:logout"));
+    }
+    return Promise.reject(e);
+  }
+);
 
 export default aiApi;

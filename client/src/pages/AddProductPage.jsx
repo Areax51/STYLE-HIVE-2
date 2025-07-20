@@ -1,89 +1,179 @@
-import { useState } from "react";
-import axios from "../utils/axios"; // Use your axios wrapper 
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "../utils/axios";
+import { Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
+
+// Simple helper to merge Tailwind classes
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
 const AddProductPage = () => {
-  const [product, setProduct] = useState({
+  const [form, setForm] = useState({
     name: "",
     description: "",
     image: "",
     price: "",
     category: "Menswear",
   });
-
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const navigate = useNavigate();
 
+  // If you want to guard this page, you could redirect here if no auth token
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    if (e.target.name === "image") {
+      setPreviewError(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token"); // JWT token from login
+    setLoading(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/products",
-        product,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      navigate("/"); // go back to homepage
+      await axios.post("/products", form);
+      toast.success("Product added successfully!");
+      setTimeout(() => navigate("/products"), 800);
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to add product");
+      console.error("Add product error:", err);
+      toast.error(err.response?.data?.message || "Failed to add product");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center py-12">
+    <section className="min-h-screen bg-black text-white flex items-center justify-center p-6">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-futuristic-gray p-6 rounded-xl shadow-lg"
+        className="w-full max-w-lg bg-gray-900/80 backdrop-blur-md p-8 rounded-2xl shadow-lg"
       >
-        <h2 className="text-2xl font-bold text-gold mb-4">Add New Product</h2>
+        <h2 className="text-2xl font-bold text-gold mb-6 text-center">
+          Add New Product
+        </h2>
 
-        {["name", "description", "image", "price"].map((field) => (
-          <div key={field} className="mb-4">
-            <input
-              type={field === "price" ? "number" : "text"}
-              name={field}
-              value={product[field]}
-              onChange={handleChange}
-              placeholder={`Enter ${field}`}
-              className="w-full p-2 bg-black border border-gold rounded text-white"
-              required
+        {/** Preview */}
+        {form.image && !previewError && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-400 mb-1">Image Preview:</p>
+            <img
+              src={form.image}
+              alt="Preview"
+              className="w-full h-48 object-cover rounded-lg border border-gold"
+              onError={() => setPreviewError(true)}
             />
+            {previewError && (
+              <p className="text-red-400 mt-2 text-sm">
+                Unable to load preview.
+              </p>
+            )}
           </div>
-        ))}
+        )}
 
-        <div className="mb-4">
-          <select
-            name="category"
-            value={product.category}
-            onChange={handleChange}
-            className="w-full p-2 bg-black border border-gold rounded text-white"
-          >
-            <option>Menswear</option>
-            <option>Womenswear</option>
-            <option>Accessories</option>
-          </select>
+        {/** Form fields */}
+        <div className="space-y-5">
+          {[
+            { name: "name", label: "Name", type: "text", required: true },
+            {
+              name: "description",
+              label: "Description",
+              type: "textarea",
+              required: false,
+            },
+            { name: "image", label: "Image URL", type: "url", required: true },
+            {
+              name: "price",
+              label: "Price (USD)",
+              type: "number",
+              required: true,
+              step: "0.01",
+            },
+          ].map(({ name, label, type, required, step }) => (
+            <div key={name}>
+              <label
+                htmlFor={name}
+                className="block text-sm font-medium text-gray-300 mb-1"
+              >
+                {label}
+                {required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              {type === "textarea" ? (
+                <textarea
+                  id={name}
+                  name={name}
+                  rows={3}
+                  value={form[name]}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-black text-white rounded-lg border border-gold focus:outline-none focus:ring-2 focus:ring-gold"
+                />
+              ) : (
+                <input
+                  id={name}
+                  name={name}
+                  type={type}
+                  step={step}
+                  value={form[name]}
+                  onChange={handleChange}
+                  required={required}
+                  placeholder={`Enter ${label}`}
+                  className="w-full px-4 py-2 bg-black text-white rounded-lg border border-gold focus:outline-none focus:ring-2 focus:ring-gold"
+                />
+              )}
+            </div>
+          ))}
+
+          <div>
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-black text-white rounded-lg border border-gold focus:outline-none focus:ring-2 focus:ring-gold"
+            >
+              <option>Menswear</option>
+              <option>Womenswear</option>
+              <option>Accessories</option>
+            </select>
+          </div>
         </div>
 
-        {error && <p className="text-red-400 mb-2">{error}</p>}
-
+        {/** Submit */}
         <button
           type="submit"
-          className="w-full py-2 bg-gold text-black font-semibold rounded hover:bg-yellow-400"
+          disabled={loading}
+          className={classNames(
+            "mt-6 w-full flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-gold",
+            loading
+              ? "bg-gold opacity-50 cursor-not-allowed"
+              : "bg-gold hover:bg-yellow-400"
+          )}
         >
-          Submit Product
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin mr-2" size={18} />
+              Submitting...
+            </>
+          ) : (
+            "Submit Product"
+          )}
         </button>
       </form>
-    </div>
+    </section>
   );
 };
 

@@ -1,48 +1,57 @@
 // client/src/App.jsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import Navbar from "./components/Navbar";
+import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Saved from "./pages/Savedd";
+import SavedStylesPage from "./pages/SavedStylesPage";
 import Recommend from "./pages/Recommend";
 import Chat from "./pages/Chat";
-import Favorites from "./pages/Favorites";
 import ImageStylist from "./components/ImageStylist";
 import ChatBoxRealtime from "./components/ChatBoxRealtime";
 import Products from "./pages/Products";
 
-function App() {
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <Navbar />
+function PrivateRoute({ element }) {
+  const token = localStorage.getItem("token");
+  return token ? element : <Navigate to="/login" replace />;
+}
 
+export default function App() {
+  return (
+    <>
       <ToastContainer
         position="top-right"
         autoClose={3000}
-        hideProgressBar={false}
         newestOnTop
-        closeOnClick
         pauseOnHover
+        theme="dark"
       />
-
-      <main className="p-4">
+      <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/stylist" element={<ImageStylist />} />
-          <Route path="/chat-live" element={<ChatBoxRealtime />} />
+
+          <Route
+            path="/saved-styles"
+            element={<PrivateRoute element={<SavedStylesPage />} />}
+          />
+          <Route
+            path="/stylist"
+            element={<PrivateRoute element={<ImageStylist />} />}
+          />
+          <Route
+            path="/chat-live"
+            element={<PrivateRoute element={<ChatBoxRealtime />} />}
+          />
+          <Route path="/chat" element={<PrivateRoute element={<Chat />} />} />
           <Route path="/products" element={<Products />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/saved" element={<Saved />} />
           <Route path="/recommend" element={<Recommend />} />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </main>
-    </div>
+      </Layout>
+    </>
   );
 }
-
-export default App;

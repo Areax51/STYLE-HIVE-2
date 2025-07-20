@@ -1,19 +1,24 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { loginUser } from "../utils/api";
+import { toast } from "react-toastify";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/";
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setError("");
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
       const res = await loginUser(form);
       const { token, user } = res.data;
@@ -21,74 +26,93 @@ const Login = () => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // Reload so Navbar updates
-      window.location.href = "/";
+      toast.success("Logged in successfully!");
+      // give the toast a moment, then redirect
+      setTimeout(() => navigate(from, { replace: true }), 800);
     } catch (err) {
-      setError(err.response?.data?.msg || "Login failed");
+      toast.error(err.response?.data?.msg || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="w-full max-w-md bg-gray-900 p-8 rounded-xl shadow-xl">
-        <h2 className="text-3xl font-bold text-center text-gold mb-6">Login</h2>
+    <section className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-gray-900/80 backdrop-blur-md p-8 rounded-2xl shadow-lg">
+        <h2 className="text-3xl font-bold text-gold mb-6 text-center">
+          Login to StyleHive
+        </h2>
 
-        {error && (
-          <p className="bg-red-500 text-white text-sm p-2 mb-4 rounded">
-            {error}
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block mb-1 text-sm text-gray-300">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
               Email
             </label>
             <input
               id="email"
-              type="email"
               name="email"
+              type="email"
               autoComplete="email"
               value={form.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-gold"
+              className="w-full px-4 py-2 bg-black text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </div>
+
           <div>
             <label
               htmlFor="password"
-              className="block mb-1 text-sm text-gray-300"
+              className="block text-sm font-medium text-gray-300 mb-1"
             >
               Password
             </label>
             <input
               id="password"
-              type="password"
               name="password"
+              type="password"
               autoComplete="current-password"
               value={form.password}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-gold"
+              className="w-full px-4 py-2 bg-black text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-gold"
             />
           </div>
+
           <button
             type="submit"
-            className="w-full bg-gold text-black font-bold py-2 rounded-lg hover:bg-yellow-400 transition"
+            disabled={loading}
+            className={`w-full flex items-center justify-center px-4 py-2 font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-gold ${
+              loading
+                ? "bg-gold opacity-50 cursor-not-allowed"
+                : "bg-gold hover:bg-yellow-400"
+            }`}
           >
-            Login
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={18} />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
 
-        <p className="text-center mt-4 text-sm text-gray-400">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-gold hover:underline">
-            Register
+        <p className="mt-6 text-center text-sm text-gray-400">
+          Don’t have an account?{" "}
+          <Link
+            to="/register"
+            className="text-gold hover:underline focus:outline-none focus:ring-1 focus:ring-gold"
+          >
+            Register here
           </Link>
         </p>
       </div>
-    </div>
+    </section>
   );
 };
 

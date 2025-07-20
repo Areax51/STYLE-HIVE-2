@@ -1,7 +1,12 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
+import { Menu, Transition } from "@headlessui/react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu } from "@headlessui/react";
 import { ChevronDownIcon } from "lucide-react";
+
+// utility to merge Tailwind classes
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
 const DropdownNav = () => {
   const [user, setUser] = useState(null);
@@ -9,7 +14,13 @@ const DropdownNav = () => {
 
   useEffect(() => {
     const saved = localStorage.getItem("user");
-    if (saved) setUser(JSON.parse(saved));
+    if (saved) {
+      try {
+        setUser(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("user");
+      }
+    }
   }, []);
 
   if (!user) return null;
@@ -21,22 +32,34 @@ const DropdownNav = () => {
   };
 
   return (
-    <div className="relative inline-block text-left">
-      <Menu as="div" className="relative">
-        <Menu.Button className="flex items-center text-white bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700">
-          <span className="mr-2">{user.username || "User"}</span>
-          <ChevronDownIcon className="w-4 h-4" />
-        </Menu.Button>
+    <Menu as="nav" className="relative inline-block text-left">
+      <Menu.Button
+        className="flex items-center bg-white/10 text-gold px-4 py-2 rounded-lg hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-gold"
+        aria-label="User menu"
+      >
+        <span className="mr-2 font-semibold">{user.username}</span>
+        <ChevronDownIcon className="w-4 h-4" />
+      </Menu.Button>
 
-        <Menu.Items className="absolute right-0 mt-2 w-40 origin-top-right bg-gray-900 border border-gray-700 divide-y divide-gray-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-          <div className="px-1 py-1">
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-150"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-100"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items className="absolute right-0 mt-2 w-40 origin-top-right bg-black/90 border border-gold divide-y divide-gold rounded-lg shadow-lg focus:outline-none z-50">
+          <div className="py-1">
             <Menu.Item>
               {({ active }) => (
                 <Link
                   to="/favorites"
-                  className={`${
-                    active ? "bg-gray-700 text-white" : "text-gray-300"
-                  } group flex w-full items-center rounded-md px-4 py-2 text-sm`}
+                  className={classNames(
+                    active ? "bg-gold text-black" : "text-white",
+                    "group flex w-full items-center px-4 py-2 text-sm font-medium rounded-t-lg"
+                  )}
                 >
                   Favorites
                 </Link>
@@ -46,9 +69,10 @@ const DropdownNav = () => {
               {({ active }) => (
                 <button
                   onClick={handleLogout}
-                  className={`${
-                    active ? "bg-gray-700 text-white" : "text-gray-300"
-                  } group flex w-full items-center rounded-md px-4 py-2 text-sm`}
+                  className={classNames(
+                    active ? "bg-gold text-black" : "text-white",
+                    "group flex w-full items-center px-4 py-2 text-sm font-medium rounded-b-lg"
+                  )}
                 >
                   Logout
                 </button>
@@ -56,8 +80,8 @@ const DropdownNav = () => {
             </Menu.Item>
           </div>
         </Menu.Items>
-      </Menu>
-    </div>
+      </Transition>
+    </Menu>
   );
 };
 

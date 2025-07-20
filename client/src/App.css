@@ -1,42 +1,85 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* src/index.css */
+/* -----------------------------------------------------------
+   HANDOFF (Alex -> Team):
+   Global stylesheet. Tailwind layer directives FIRST.
+   Add component & utility extensions below in @layer blocks.
+----------------------------------------------------------- */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Font (example) */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
+
+/* Root Theme Tokens (CSS vars for custom gradients / brand) */
+:root {
+  --brand-gold: #f4c95d;
+  --brand-gold-accent: #ffdf85;
+  --brand-bg-start: #050505;
+  --brand-bg-mid: #111111;
+  --brand-bg-end: #1c1c1c;
+  font-family: "Outfit", system-ui, sans-serif;
+  color-scheme: dark;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+/* Scrollbar refinement (optional) */
+::-webkit-scrollbar {
+  width: 8px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+::-webkit-scrollbar-track {
+  background: #0c0c0c;
 }
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+::-webkit-scrollbar-thumb {
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Utility Extensions */
+@layer utilities {
+  .bg-app-gradient {
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(255, 215, 128, 0.08),
+        transparent 60%
+      ),
+      linear-gradient(
+        135deg,
+        var(--brand-bg-start),
+        var(--brand-bg-mid) 40%,
+        var(--brand-bg-end)
+      );
   }
-  to {
-    transform: rotate(360deg);
+  .text-gold {
+    color: var(--brand-gold);
+  }
+  .bg-gold {
+    background: var(--brand-gold);
+  }
+  .hover-gold-glow:hover {
+    box-shadow: 0 0 0.75rem -0.1rem var(--brand-gold-accent);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+/* Component Layer Additions */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition
+      disabled:opacity-50 disabled:cursor-not-allowed;
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  .btn-primary {
+    @apply bg-gold text-black hover:opacity-90;
+  }
+  .btn-outline {
+    @apply border border-gold text-gold hover:bg-gold hover:text-black;
+  }
+  .card {
+    @apply bg-neutral-900/60 backdrop-blur border border-neutral-700 rounded-2xl p-5 shadow
+      hover:border-gold transition;
+  }
+  .section-heading {
+    @apply text-3xl font-bold bg-gradient-to-r from-yellow-400 to-amber-300 bg-clip-text text-transparent tracking-wide;
+  }
 }
